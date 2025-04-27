@@ -22,6 +22,22 @@
       "B6 - 2001 - 2004": {},
       "B7 - 2004 - 2008": {},
       "B8 - 2008 - 2011": {
+        "1.8 TFSI 120 HP": {
+          "Type": "Petrol",
+          "Original HP": 120,
+          "Tuned HP": 210,
+          "Original Torque": 230,
+          "Tuned Torque": 310,
+          "Options": [
+            "VMax",
+            "Decat",
+            "EVAP",
+            "Flaps",
+            "PopBang",
+            "StartStop",
+            "DTC Removal"
+          ]
+        },
         "2.0 TFSI 211 HP": {
           "Type": "Petrol",
           "Original HP": 211,
