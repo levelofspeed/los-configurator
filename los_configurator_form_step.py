@@ -140,23 +140,18 @@ if submit:
         st.stop()
 
     # Compose message
-    selection_text = (
-        f"📩 LoS Config Request
-"
-        f"Brand: {brand}
+    selection_text = f"""📩 LoS Config Request
+Brand: {brand}
 Model: {model}
 Generation: {gen}
-"
-        f"Engine: {engine}
+Engine: {engine}
 Stage: {stage}
 Options: {', '.join(opts) if opts else 'N/A'}
-"
-        f"Name: {name}
+Name: {name}
 Email: {email}
 VIN: {vin}
-Message: {msg}"
-    )
-    
+Message: {msg}"""
+
     # Send to Telegram
     try:
         bot = st.secrets['telegram']['token']
