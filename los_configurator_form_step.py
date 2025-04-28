@@ -1,122 +1,132 @@
 import streamlit as st
 import matplotlib.pyplot as plt
-import os
 import json
+import os
 
-# Debug mode
-DEBUG = True
+# Debug setup
+st.set_page_config(page_title="DEBUG - LoS Configurator")
+st.sidebar.title("Debug Panel")
+DEBUG = st.sidebar.checkbox("Enable debug", True)
 
 def log(message):
     if DEBUG:
-        st.write(f"DEBUG: {message}")
-
-# Page config
-st.set_page_config(page_title="Level of Speed Configurator", layout="wide")
+        st.session_state.debug_info.append(message)
+        st.sidebar.code(f"Last event: {message}")
 
 # Initialize session state
 if 'debug_info' not in st.session_state:
     st.session_state.debug_info = []
-
-# Multilanguage support (упрощенная версия)
-language = 'en'  # Фиксируем язык для теста
+if 'engine_data' not in st.session_state:
+    st.session_state.engine_data = None
 
 # Load database
 @st.cache_data
 def load_db():
-    db_path = os.path.join(os.getcwd(), 'data', 'full_database.json')
-    with open(db_path, encoding='utf-8') as f:
-        return json.load(f)
-
-try:
-    database = load_db()
-    log("Database loaded successfully")
-except Exception as e:
-    st.error(f"Error loading database: {str(e)}")
-    st.stop()
-
-# Selection steps
-try:
-    st.header("Vehicle Selection")
-    
-    brands = [''] + list(database.keys())
-    brand = st.selectbox("Select Brand", brands, key='brand')
-    log(f"Selected brand: {brand}")
-    
-    if not brand:
-        st.stop()
-    
-    models = [''] + list(database[brand].keys())
-    model = st.selectbox("Select Model", models, key='model')
-    log(f"Selected model: {model}")
-    
-    if not model:
-        st.stop()
-    
-    generations = [''] + list(database[brand][model].keys())
-    generation = st.selectbox("Select Generation", generations, key='generation')
-    log(f"Selected generation: {generation}")
-    
-    if not generation:
-        st.stop()
-    
-    engines_data = database[brand][model][generation]
-    fuels = sorted({d.get('Type') for d in engines_data.values() if isinstance(d, dict)})
-    fuel = st.selectbox("Select Fuel", [''] + fuels, key='fuel')
-    log(f"Selected fuel: {fuel}")
-    
-    if not fuel:
-        st.stop()
-    
-    engines = [name for name, d in engines_data.items() 
-               if isinstance(d, dict) and d.get('Type') == fuel]
-    engine = st.selectbox("Select Engine", [''] + engines, key='engine')
-    log(f"Selected engine: {engine}")
-    
-    if not engine:
-        st.stop()
-
-    # Упрощенный выбор stage
-    stage = st.selectbox("Select Tuning Stage", 
-                        ["Power Only", "Options Only", "Full Package"], 
-                        key='stage')
-    log(f"Selected stage: {stage}")
-
-    # Options selection
-    if stage != "Power Only":
-        options = engines_data[engine].get('Options', [])
-        selected_options = st.multiselect("Select Options", options, key='options')
-        log(f"Selected options: {selected_options}")
-
-    # Display debug info
-    if DEBUG:
-        with st.expander("Debug Info"):
-            st.write(st.session_state.debug_info)
-
-    # Charts
-    st.header("Performance Chart")
     try:
-        rec = engines_data[engine]
-        orig_hp, tuned_hp = rec['Original HP'], rec['Tuned HP']
-        orig_tq, tuned_tq = rec['Original Torque'], rec['Tuned Torque']
-        
-        fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 5))
-        
-        # HP plot
-        ax1.bar(['Stock', 'Tuned'], [orig_hp, tuned_hp], color=['gray', 'red'])
-        ax1.set_title("Horsepower")
-        
-        # Torque plot
-        ax2.bar(['Stock', 'Tuned'], [orig_tq, tuned_tq], color=['gray', 'red'])
-        ax2.set_title("Torque")
-        
-        st.pyplot(fig)
-        plt.close(fig)
-        log("Chart rendered successfully")
-        
+        db_path = os.path.join('data', 'full_database.json')
+        with open(db_path, encoding='utf-8') as f:
+            return json.load(f)
     except Exception as e:
-        st.error(f"Error generating chart: {str(e)}")
-        log(f"Chart error: {str(e)}")
+        log(f"DB load error: {str(e)}")
+        st.error("Database loading failed")
+        st.stop()
 
+database = load_db()
+
+# Vehicle selection - simplified
+st.header("1. Vehicle Selection")
+
+brand = st.selectbox("Brand", [''] + list(database.keys()), key='brand')
+if not brand: st.stop()
+
+model = st.selectbox("Model", [''] + list(database[brand].keys()), key='model')
+if not model: st.stop()
+
+generation = st.selectbox("Generation", [''] + list(database[brand][model].keys()), key='generation')
+if not generation: st.stop()
+
+engines_data = database[brand][model][generation]
+fuel_types = sorted({e.get('Type') for e in engines_data.values() if isinstance(e, dict)})
+fuel = st.selectbox("Fuel", [''] + fuel_types, key='fuel')
+if not fuel: st.stop()
+
+engines = [k for k, v in engines_data.items() if isinstance(v, dict) and v.get('Type') == fuel]
+engine = st.selectbox("Engine", [''] + engines, key='engine')
+if not engine: st.stop()
+
+# Critical section - Tuning Stage
+st.header("2. Tuning Configuration")
+log(f"Pre-stage selection. Engine: {engine}")
+
+# IMPORTANT: We'll try 3 different approaches one by one
+approach = st.radio("Select rendering approach", 
+                   ["Original", "Session State", "Static Options"], 
+                   index=0)
+
+if approach == "Original":
+    # Original problematic version
+    stage = st.selectbox("Tuning Stage", 
+                        ["Power Only", "Options Only", "Full Package"],
+                        key='stage_original')
+    
+elif approach == "Session State":
+    # Version with session state tracking
+    if 'tuning_stage' not in st.session_state:
+        st.session_state.tuning_stage = "Power Only"
+    
+    new_stage = st.selectbox("Tuning Stage", 
+                           ["Power Only", "Options Only", "Full Package"],
+                           index=["Power Only", "Options Only", "Full Package"].index(st.session_state.tuning_stage),
+                           key='stage_session')
+    
+    if new_stage != st.session_state.tuning_stage:
+        log(f"Stage changed from {st.session_state.tuning_stage} to {new_stage}")
+        st.session_state.tuning_stage = new_stage
+    
+    stage = st.session_state.tuning_stage
+
+else:
+    # Static options with reset
+    stage = st.selectbox("Tuning Stage", 
+                        ["Power Only", "Options Only", "Full Package"],
+                        key='stage_static')
+
+log(f"Selected stage: {stage}")
+
+# Options selection - with protection
+if stage != "Power Only":
+    try:
+        available_options = engines_data[engine].get('Options', [])
+        selected_options = st.multiselect("Available Options", 
+                                        available_options,
+                                        key='engine_options')
+        log(f"Selected options: {selected_options}")
+    except Exception as e:
+        st.error(f"Options loading error: {str(e)}")
+        log(f"Options error: {str(e)}")
+
+# Display debug info
+if DEBUG:
+    st.sidebar.subheader("Session State")
+    st.sidebar.json(st.session_state)
+    
+    st.subheader("Debug Log")
+    for msg in st.session_state.debug_info[-10:]:
+        st.code(msg)
+
+# Simple chart
+try:
+    st.header("Performance Chart")
+    engine_spec = engines_data[engine]
+    
+    fig, ax = plt.subplots(figsize=(10, 5))
+    ax.bar(['Stock HP', 'Tuned HP'], 
+           [engine_spec['Original HP'], engine_spec['Tuned HP']], 
+           color=['gray', 'red'])
+    st.pyplot(fig)
+    plt.close(fig)
+    log("Chart rendered successfully")
+    
 except Exception as e:
-    st.error(f"An error occurred: {str(e)}")
-    log(f"Critical error: {str(e)}")
+    st.error(f"Chart error: {str(e)}")
+    log(f"Chart failed: {str(e)}")
