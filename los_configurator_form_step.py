@@ -10,7 +10,6 @@ st.set_page_config(page_title="Level of Speed Configurator", layout="wide")
 # ---------- Translations ----------
 languages = {"en": "English", "ru": "Русский", "de": "Deutsch"}
 
-# Вставьте свой полный словарь, я оставляю минимальный набор, остальные ключи подхватятся как fallback
 translations = {
     "en": {
         "select_brand": "Select Brand",
@@ -31,6 +30,7 @@ translations = {
         "attach_pdf": "Attach PDF",
         "upload_file": "Attach file",
         "submit": "Submit",
+        "success": "Thank you! We will contact you soon.",
         "error_name": "Please enter your name",
         "error_email": "Please enter a valid email",
         "error_select_options": "Select at least one option"
@@ -54,6 +54,7 @@ translations = {
         "attach_pdf": "Приложить PDF",
         "upload_file": "Загрузить файл",
         "submit": "Отправить",
+        "success": "Спасибо! Мы скоро свяжемся с вами.",
         "error_name": "Введите имя",
         "error_email": "Введите корректный email",
         "error_select_options": "Выберите хотя бы одну опцию"
@@ -77,6 +78,7 @@ translations = {
         "attach_pdf": "PDF anhängen",
         "upload_file": "Datei anhängen",
         "submit": "Senden",
+        "success": "Danke! Wir melden uns bald.",
         "error_name": "Bitte Namen eingeben",
         "error_email": "Bitte gültige E‑Mail eingeben",
         "error_select_options": "Wählen Sie mindestens eine Option"
@@ -88,7 +90,8 @@ class SafeTranslations(UserDict):
         return key
 
 # ---------- Load selected language ----------
-language = st.selectbox("🌐 Language / Язык / Sprache", list(languages.keys()), format_func=lambda x: languages[x])
+language = st.sidebar.selectbox("🌐 Language / Язык / Sprache", list(languages.keys()),
+                                format_func=lambda x: languages[x])
 _t = SafeTranslations(translations.get(language, translations["en"]))
 
 # ---------- DB helpers ----------
@@ -104,11 +107,9 @@ def _prune_empty(node):
         return {k: v for k, v in cleaned.items() if v not in (None, {}, [], "")}
     return node
 
-raw_database = load_db()
-database = _prune_empty(raw_database)
+database = _prune_empty(load_db())
 
 # ---------- Session helpers ----------
-
 def _clear_state(*keys):
     for k in keys:
         st.session_state.pop(k, None)
@@ -118,7 +119,7 @@ st.title("🚗 Level of Speed Configurator")
 
 brand = st.selectbox(
     _t["select_brand"],
-    [""] + list(database.keys()),
+    [""] + sorted(database.keys()),
     key="brand",
     on_change=lambda: _clear_state("model", "generation", "fuel", "engine", "stage", "options"),
 )
@@ -127,7 +128,7 @@ if not brand:
 
 model = st.selectbox(
     _t["select_model"],
-    [""] + list(database[brand].keys()),
+    [""] + sorted(database[brand].keys()),
     key="model",
     on_change=lambda: _clear_state("generation", "fuel", "engine", "stage", "options"),
 )
@@ -136,7 +137,7 @@ if not model:
 
 generation = st.selectbox(
     _t["select_generation"],
-    [""] + list(database[brand][model].keys()),
+    [""] + sorted(database[brand][model].keys()),
     key="generation",
     on_change=lambda: _clear_state("fuel", "engine", "stage", "options"),
 )
@@ -171,7 +172,7 @@ stage = st.selectbox(
     key="stage",
     on_change=lambda: _clear_state("options"),
 )
-opts_selected = []
+opts_selected: list[str] = []
 
 # ---------- Charts ----------
 rec = engines_data[engine]
@@ -180,23 +181,10 @@ orig_tq, tuned_tq = rec["Original Torque"], rec["Tuned Torque"]
 y_max = max(orig_hp, tuned_hp, orig_tq, tuned_tq) * 1.2
 
 st.markdown("---")
-fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 5))
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 4))
 ax1.bar(["Stock", "LoS"], [orig_hp, tuned_hp]); ax1.set_ylim(0, y_max); ax1.set_title("HP")
 for i, v in enumerate([orig_hp, tuned_hp]): ax1.text(i, v * 1.02, f"{v} hp", ha="center")
 ax2.bar(["Stock", "LoS"], [orig_tq, tuned_tq]); ax2.set_ylim(0, y_max); ax2.set_title("Torque")
 for i, v in enumerate([orig_tq, tuned_tq]): ax2.text(i, v * 1.02, f"{v} Nm", ha="center")
-plt.tight_layout(); st.pyplot(fig); plt.close(fig)
-
-# ---------- Options ----------
-if stage in (_t["stage_full"], _t["stage_options_only"]):
-    st.markdown("----")
-    opts_selected = st.multiselect(_t["options"], rec.get("Options", []), key="options")
-
-st.write("")
-
-# ---------- Contact form ----------
-with st.form("contact_form"):
-    name = st.text_input(_t["name"])
-    email = st.text_input(_t["email"])
-    vin = st.text_input("VIN")
-    message = st.text
+plt.tight_layout()
+st.pyplot
