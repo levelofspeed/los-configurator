@@ -144,9 +144,13 @@ database = load_db()
 # Selection steps
 brand = st.selectbox(t['select_brand'], [''] + list(database.keys()), key='brand')
 if not brand: st.stop()
+
 model = st.selectbox(t['select_model'], [''] + list(database[brand].keys()), key='model')
 if not model: st.stop()
-generation = st.selectbox(t['select_generation'], [''] + list(database[brand][model].keys()), key='generation')
+
+generation = st.selectbox(
+    t['select_generation'], [''] + list(database[brand][model].keys()), key='generation'
+)
 if not generation: st.stop()
 
 engines_data = database[brand][model][generation]
@@ -158,7 +162,9 @@ engines = [name for name, d in engines_data.items() if isinstance(d, dict) and d
 engine = st.selectbox(t['select_engine'], [''] + engines, key='engine')
 if not engine: st.stop()
 
-stage = st.selectbox(t['select_stage'], [t['stage_power'], t['stage_options_only'], t['stage_full']], key='stage')
+stage = st.selectbox(
+    t['select_stage'], [t['stage_power'], t['stage_options_only'], t['stage_full']], key='stage'
+)
 opts_selected = []
 if stage != t['stage_power']:
     st.markdown('----')
@@ -171,16 +177,17 @@ rec = engines_data[engine]
 orig_hp, tuned_hp = rec['Original HP'], rec['Tuned HP']
 orig_tq, tuned_tq = rec['Original Torque'], rec['Tuned Torque']
 y_max = max(orig_hp, tuned_hp, orig_tq, tuned_tq) * 1.2
-fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 5), facecolor='black')
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 5))
+fig.patch.set_facecolor('white')
 # HP
-ax1.set_facecolor('black')
+
 ax1.bar(['Stock', 'LoS'], [orig_hp, tuned_hp], color=['#A0A0A0', '#FF0000'])
 ax1.set_ylim(0, y_max)
 for i, v in enumerate([orig_hp, tuned_hp]): ax1.text(i, v * 1.02, f"{v} hp", ha='center', color='white')
 ax1.text(0.5, -0.15, t['difference_hp'].format(hp=tuned_hp - orig_hp), transform=ax1.transAxes, ha='center', color='white')
 ax1.set_ylabel(t['original_hp'], color='white'); ax1.tick_params(colors='white')
 # Torque
-ax2.set_facecolor('black')
+
 ax2.bar(['Stock', 'LoS'], [orig_tq, tuned_tq], color=['#A0A0A0', '#FF0000'])
 ax2.set_ylim(0, y_max)
 for i, v in enumerate([orig_tq, tuned_tq]): ax2.text(i, v * 1.02, f"{v} Nm", ha='center', color='white')
