@@ -29,18 +29,19 @@ with cols[1]:
             st.image(logo, use_column_width=True)
 
 # Language selector and title
+langs = ["en", "ru", "de"]
 lang_cols = st.columns([8, 1])
 with lang_cols[1]:
     lang_code = st.selectbox(
         translations['en']['select_language'],
-        list(directories.keys()),
-        index=list(directories.keys()).index('en'),
+        langs,
+        index=langs.index('en'),
         format_func=lambda x: directories[x],
         key='language',
         label_visibility='collapsed'
     )
 with lang_cols[0]:
-    st.title(translations[lang_code]['title'])
+    st.title(translations[lang_code]['title'])(translations[lang_code]['title'])
 
 t = translations[lang_code]
 
