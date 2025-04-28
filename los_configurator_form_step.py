@@ -116,7 +116,10 @@ with st.form("contact_form"):
     message = st.text_area(_t["message"], height=120)
     send_copy = st.checkbox(_t["send_copy"])
     attach_pdf = st.checkbox(_t["attach_pdf"])
-    uploaded_file = st.file_uploader(_t["upload_file"], type=["txt", "pdf", "jpg", "png"])
+    uploaded_file = st.file_uploader(
+        _t["upload_file"],
+        type=["txt", "pdf", "jpg", "png", "rar", "zip"],  # расширили список
+    )
     submit = st.form_submit_button(_t["submit"])
 
 # ---------- Form validation ----------
@@ -129,4 +132,89 @@ if not email or "@" not in email:
 if stage == _t["stage_full"] and not opts_selected:
     st.error(_t["error_select_options"]); st.stop()
 
+# ---------- Send via Telegram (optional) ----------
+TOKEN = os.getenv("TG_BOT_TOKEN")
+CHAT_ID = os.getenv("TG_CHAT_ID")
+if TOKEN and CHAT_ID:
+    import requests, textwrap
+    text = textwrap.dedent(f"""
+        🏎 Level of Speed Configurator
+        Brand / Model / Gen: {brand} / {model} / {generation}
+        Fuel: {fuel} | Engine: {engine}
+        Stage: {stage}
+        Options: {', '.join(opts_selected) if opts_selected else '-'}
+
+        Name: {name}
+        Email: {email}
+        VIN: {vin}
+        Message: {message}
+    """)
+    try:
+        requests.post(f"https://api.telegram.org/bot{TOKEN}/sendMessage", data={"chat_id": CHAT_ID, "text": text})
+        if uploaded_file is not None:
+            requests.post(
+                f"https://api.telegram.org/bot{TOKEN}/sendDocument",
+                data={"chat_id": CHAT_ID},
+                files={"document": (uploaded_file.name, uploaded_file.read(), uploaded_file.type)},
+            )
+    except Exception as tg_err:
+        st.warning(f"Telegram error: {tg_err}")
+
+# ---------- Send e‑mail copy to client (optional) ----------
+if send_copy:
+    SMTP_HOST = os.getenv("SMTP_HOST")
+    SMTP_PORT = int(os.getenv("SMTP_PORT", "587"))
+    SMTP_USER = os.getenv("SMTP_USER")
+    SMTP_PASS = os.getenv("SMTP_PASS")
+    if all([SMTP_HOST, SMTP_USER, SMTP_PASS]):
+        import smtplib, email.message, textwrap, io
+        from fpdf import FPDF
+
+        # Build plain‑text body
+        body = textwrap.dedent(f"""
+            Hello {name},
+
+            Thank you for your request! Here is a summary:
+            Brand / Model / Generation: {brand} / {model} / {generation}
+            Fuel: {fuel}
+            Engine: {engine}
+            Stage: {stage}
+            Options: {', '.join(opts_selected) if opts_selected else '-'}
+            VIN: {vin}
+
+            Message from you:
+            {message}
+
+            Best regards,
+            Level of Speed team
+        """)
+
+        msg = email.message.EmailMessage()
+        msg["Subject"] = "Level of Speed Configurator – Your Request"
+        msg["From"] = SMTP_USER
+        msg["To"] = email
+        msg.set_content(body)
+
+        # Attach generated PDF report (not the client's upload)
+        if attach_pdf:
+            pdf = FPDF()
+            pdf.add_page()
+            pdf.set_font("Arial", size=12)
+            for line in body.split("
+"):
+                pdf.multi_cell(0, 10, txt=line)
+            pdf_bytes = pdf.output(dest="S").encode("latin-1")
+            msg.add_attachment(pdf_bytes, maintype="application", subtype="pdf", filename="LoS_report.pdf")
+
+        try:
+            with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as s:
+                s.starttls(); s.login(SMTP_USER, SMTP_PASS); s.send_message(msg)
+        except Exception as mail_err:
+            st.warning(f"E‑mail error: {mail_err}")
+    else:
+        st.info("Send‑copy requested, but SMTP credentials are missing.")
+
 st.success(_t["success"])
+st.stop()(_t["success"])
+st.stop()(_t["success"])
+st.stop()
