@@ -1,66 +1,121 @@
 import streamlit as st
 import matplotlib.pyplot as plt
-import os
-import json
-import requests
-import io
-import tempfile
+import os, json, io, tempfile, requests
 from fpdf import FPDF
+from collections import UserDict
 
-# Page config
+# ---------- Page config ----------
 st.set_page_config(page_title="Level of Speed Configurator", layout="wide")
 
-# Multilanguage support (оставил как в оригинале)
+# ---------- Translations ----------
 languages = {"en": "English", "ru": "Русский", "de": "Deutsch"}
+
+# Вставьте свой полный словарь, я оставляю минимальный набор, остальные ключи подхватятся как fallback
 translations = {
     "en": {
-        # … полный словарь перевода из вашего исходника …
+        "select_brand": "Select Brand",
+        "select_model": "Select Model",
+        "select_generation": "Select Generation",
+        "select_fuel": "Select Fuel",
+        "select_engine": "Select Engine",
+        "select_stage": "Select Stage",
+        "stage_power": "Power only",
+        "stage_options_only": "Options only",
+        "stage_full": "Full package",
+        "options": "Options",
+        "form_title": "Contact Us",
+        "name": "Name",
+        "email": "Email",
+        "message": "Message",
+        "send_copy": "Send me a copy",
+        "attach_pdf": "Attach PDF",
+        "upload_file": "Attach file",
+        "submit": "Submit",
+        "error_name": "Please enter your name",
+        "error_email": "Please enter a valid email",
+        "error_select_options": "Select at least one option"
     },
     "ru": {
-        # …
+        "select_brand": "Выберите марку",
+        "select_model": "Выберите модель",
+        "select_generation": "Выберите поколение",
+        "select_fuel": "Выберите тип топлива",
+        "select_engine": "Выберите двигатель",
+        "select_stage": "Выберите Stage",
+        "stage_power": "Только мощность",
+        "stage_options_only": "Только опции",
+        "stage_full": "Полный пакет",
+        "options": "Опции",
+        "form_title": "Свяжитесь с нами",
+        "name": "Имя",
+        "email": "Email",
+        "message": "Сообщение",
+        "send_copy": "Прислать копию",
+        "attach_pdf": "Приложить PDF",
+        "upload_file": "Загрузить файл",
+        "submit": "Отправить",
+        "error_name": "Введите имя",
+        "error_email": "Введите корректный email",
+        "error_select_options": "Выберите хотя бы одну опцию"
     },
     "de": {
-        # …
-    },
+        "select_brand": "Marke auswählen",
+        "select_model": "Modell auswählen",
+        "select_generation": "Generation auswählen",
+        "select_fuel": "Kraftstoff auswählen",
+        "select_engine": "Motor auswählen",
+        "select_stage": "Stage auswählen",
+        "stage_power": "Nur Leistung",
+        "stage_options_only": "Nur Optionen",
+        "stage_full": "Komplettpaket",
+        "options": "Optionen",
+        "form_title": "Kontakt",
+        "name": "Name",
+        "email": "E-Mail",
+        "message": "Nachricht",
+        "send_copy": "Kopie an mich senden",
+        "attach_pdf": "PDF anhängen",
+        "upload_file": "Datei anhängen",
+        "submit": "Senden",
+        "error_name": "Bitte Namen eingeben",
+        "error_email": "Bitte gültige E‑Mail eingeben",
+        "error_select_options": "Wählen Sie mindestens eine Option"
+    }
 }
 
-# --------- БАЗА ДАННЫХ ---------
+class SafeTranslations(UserDict):
+    def __missing__(self, key):
+        return key
+
+# ---------- Load selected language ----------
+language = st.selectbox("🌐 Language / Язык / Sprache", list(languages.keys()), format_func=lambda x: languages[x])
+_t = SafeTranslations(translations.get(language, translations["en"]))
+
+# ---------- DB helpers ----------
 @st.cache_data
 def load_db():
     db_path = os.path.join(os.getcwd(), "data", "full_database.json")
     with open(db_path, encoding="utf-8") as f:
         return json.load(f)
 
-# Удаляем пустые ветки, чтобы видны были только реально заполненные модели/двигатели
-
 def _prune_empty(node):
-    """Recursively remove keys that point to empty dicts/lists/None/''."""
     if isinstance(node, dict):
         cleaned = {k: _prune_empty(v) for k, v in node.items()}
         return {k: v for k, v in cleaned.items() if v not in (None, {}, [], "")}
     return node
 
-# Загружаем и чистим базу
 raw_database = load_db()
 database = _prune_empty(raw_database)
 
-# --------- ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ---------
+# ---------- Session helpers ----------
 
 def _clear_state(*keys):
-    """Удалить из session_state зависимые ключи, чтобы они переинициализировались."""
     for k in keys:
-        if k in st.session_state:
-            del st.session_state[k]
+        st.session_state.pop(k, None)
 
-# --------- UI ---------
-
-# Язык интерфейса
-language = st.selectbox("🌐 Language / Язык / Sprache", list(languages.keys()), format_func=lambda x: languages[x])
-_t = translations.get(language, translations["en"])
-
+# ---------- UI ----------
 st.title("🚗 Level of Speed Configurator")
 
-# --------- ШАГ 1. БРЕНД ---------
 brand = st.selectbox(
     _t["select_brand"],
     [""] + list(database.keys()),
@@ -70,7 +125,6 @@ brand = st.selectbox(
 if not brand:
     st.stop()
 
-# --------- ШАГ 2. МОДЕЛЬ ---------
 model = st.selectbox(
     _t["select_model"],
     [""] + list(database[brand].keys()),
@@ -80,7 +134,6 @@ model = st.selectbox(
 if not model:
     st.stop()
 
-# --------- ШАГ 3. ПОКОЛЕНИЕ ---------
 generation = st.selectbox(
     _t["select_generation"],
     [""] + list(database[brand][model].keys()),
@@ -90,7 +143,6 @@ generation = st.selectbox(
 if not generation:
     st.stop()
 
-# --------- ШАГ 4. ТИП ТОПЛИВА ---------
 engines_data = database[brand][model][generation]
 fuels = sorted({d.get("Type") for d in engines_data.values() if isinstance(d, dict) and d})
 
@@ -103,7 +155,6 @@ fuel = st.selectbox(
 if not fuel:
     st.stop()
 
-# --------- ШАГ 5. ДВИГАТЕЛЬ ---------
 engines = [name for name, d in engines_data.items() if isinstance(d, dict) and d.get("Type") == fuel]
 engine = st.selectbox(
     _t["select_engine"],
@@ -114,7 +165,6 @@ engine = st.selectbox(
 if not engine:
     st.stop()
 
-# --------- ШАГ 6. СЦЕНАРИЙ (Stage) ---------
 stage = st.selectbox(
     _t["select_stage"],
     [_t["stage_power"], _t["stage_options_only"], _t["stage_full"]],
@@ -123,70 +173,30 @@ stage = st.selectbox(
 )
 opts_selected = []
 
-# --------- ДАННЫЕ ПО ДВИГАТЕЛЮ И ГРАФИК ---------
+# ---------- Charts ----------
 rec = engines_data[engine]
 orig_hp, tuned_hp = rec["Original HP"], rec["Tuned HP"]
 orig_tq, tuned_tq = rec["Original Torque"], rec["Tuned Torque"]
-
-# Столбчатая диаграмма с одинаковым масштабом
-st.markdown("---")
 y_max = max(orig_hp, tuned_hp, orig_tq, tuned_tq) * 1.2
-fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 5), facecolor="white")
 
-# HP
-ax1.bar(["Stock", "LoS"], [orig_hp, tuned_hp])
-ax1.set_ylim(0, y_max)
-for i, v in enumerate([orig_hp, tuned_hp]):
-    ax1.text(i, v * 1.02, f"{v} hp", ha="center")
-ax1.set_title("Horsepower")
+st.markdown("---")
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 5))
+ax1.bar(["Stock", "LoS"], [orig_hp, tuned_hp]); ax1.set_ylim(0, y_max); ax1.set_title("HP")
+for i, v in enumerate([orig_hp, tuned_hp]): ax1.text(i, v * 1.02, f"{v} hp", ha="center")
+ax2.bar(["Stock", "LoS"], [orig_tq, tuned_tq]); ax2.set_ylim(0, y_max); ax2.set_title("Torque")
+for i, v in enumerate([orig_tq, tuned_tq]): ax2.text(i, v * 1.02, f"{v} Nm", ha="center")
+plt.tight_layout(); st.pyplot(fig); plt.close(fig)
 
-# Torque
-ax2.bar(["Stock", "LoS"], [orig_tq, tuned_tq])
-ax2.set_ylim(0, y_max)
-for i, v in enumerate([orig_tq, tuned_tq]):
-    ax2.text(i, v * 1.02, f"{v} Nm", ha="center")
-ax2.set_title("Torque")
-
-plt.tight_layout()
-st.pyplot(fig)
-plt.close(fig)
-
-# --------- ОПЦИИ / Multiselect ---------
+# ---------- Options ----------
 if stage in (_t["stage_full"], _t["stage_options_only"]):
     st.markdown("----")
-    opts_selected = st.multiselect(
-        _t["options"],
-        rec.get("Options", []),
-        key="options",
-    )
+    opts_selected = st.multiselect(_t["options"], rec.get("Options", []), key="options")
 
 st.write("")
 
-# --------- КОНТАКТНАЯ ФОРМА ---------
+# ---------- Contact form ----------
 with st.form("contact_form"):
     name = st.text_input(_t["name"])
     email = st.text_input(_t["email"])
     vin = st.text_input("VIN")
-    message = st.text_area(_t["message"], height=100)
-    send_copy = st.checkbox(_t["send_copy"])
-    attach_pdf = st.checkbox(_t["attach_pdf"])
-    uploaded_file = st.file_uploader(_t["upload_file"], type=["txt", "pdf", "jpg", "png"])
-
-    submit = st.form_submit_button(_t["submit"])
-
-if not submit:
-    st.stop()
-
-# Простейшая валидация
-if not name:
-    st.error(_t.get("error_name", "Name required"))
-    st.stop()
-if not email or "@" not in email:
-    st.error(_t.get("error_email", "Invalid email"))
-    st.stop()
-if stage == _t.get("stage_full") and not opts_selected:
-    st.error(_t.get("error_select_options", "Select at least one option"))
-    st.stop()
-
-# --------- ФОРМИРОВАНИЕ PDF, ОТПРАВКА В TG/EMAIL (оставил без изменений) ---------
-# … ваш оригинальный код отправки Telegram и письма …
+    message = st.text
