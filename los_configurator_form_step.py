@@ -118,13 +118,13 @@ cols = st.columns([1, 8, 1])
 with cols[1]:
     logo_path = os.path.join(os.getcwd(), 'logo.png')
     if os.path.exists(logo_path):
-        st.image(logo_path, use_column_width=True)
+        st.image(logo_path, use_container_width=True)
 
 # Language selector and app title
 langcols = st.columns([8, 1])
 with langcols[1]:
     language = st.selectbox(
-        '', dirs, index=dirs.index('en'),
+        t['select_language'], dirs, index=dirs.index('en'),
         format_func=lambda c: languages[c], key='language', label_visibility='collapsed'
     )
 with langcols[0]:
