@@ -21,7 +21,7 @@ class SafeTranslations(UserDict):
 col_spacer, col_lang = st.columns([12, 1])
 with col_lang:
     language = st.selectbox("", list(languages.keys()), format_func=lambda x: languages[x])
-_t = SafeTranslations(translations.get(language, translations.get("en", {}))))
+_t = SafeTranslations(translations.get(language, translations.get("en", {})))
 
 # ---------- DB helpers ----------
 @st.cache_data
