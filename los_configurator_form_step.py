@@ -18,7 +18,7 @@ class SafeTranslations(UserDict):
         return key
 
 # ---------- Language selector (top‑right) ----------
-col_spacer, col_lang = st.columns([12, 1])
+col_spacer, col_lang = st.columns([10, 2])
 with col_lang:
     language = st.selectbox("", list(languages.keys()), format_func=lambda x: languages[x])
 _t = SafeTranslations(translations.get(language, translations.get("en", {})))
@@ -93,17 +93,19 @@ try:
     for i, v in enumerate([orig_hp, tuned_hp]):
         ax1.text(i, v * 1.02, f"{v} hp", ha="center", color="white")
 
-    ax2.bar(["Stock", "LoS"], [orig_tq, tuned_tq], color=["#808080", "#ff851b"])
+    ax2.bar(["Stock", "LoS"], [orig_tq, tuned_tq], color=["#808080", "#FF0000"])
     ax2.set_ylim(0, y_max); ax2.set_title("Torque", color="white")
     for i, v in enumerate([orig_tq, tuned_tq]):
         ax2.text(i, v * 1.02, f"{v} Nm", ha="center", color="white")
 
     plt.tight_layout(); st.pyplot(fig); plt.close(fig)
+    # Show gains below the chart
+    st.markdown(f"**Δ HP:** +{tuned_hp - orig_hp} hp &nbsp;&nbsp; **Δ Torque:** +{tuned_tq - orig_tq} Nm")
 except Exception as e:
     st.exception(e)
 
 # ---------- Contact form ----------
-st.header(_t["form_title"])
+st.header(_t.get("form_title", "Contact Form"))
 with st.form("contact_form"):
     name = st.text_input(_t["name"])
     email = st.text_input(_t["email"])
