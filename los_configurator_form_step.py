@@ -114,100 +114,24 @@ plt.tight_layout()
 st.pyplot(fig)
 
 # STOP removed — re-enable form processing
-# Contact Form
-st.markdown('----')
-st.markdown(f"### {t['form_title']}")
-with st.form('contact'):
-    name = st.text_input(t['name'], key='name')
-    email = st.text_input(t['email'], key='email')
-    vin = st.text_input(t['vin'], key='vin')
-    msg = st.text_area(t['message'], key='message')
-    send_copy = st.checkbox(t['send_copy'], key='send_copy')
-    attach_pdf = st.checkbox(t['attach_pdf'], key='attach_pdf')
-    up_file = st.file_uploader(t['upload_file'], key='upload_file')
-    submit = st.form_submit_button(t['submit'])
+# Contact Form (temporarily disabled for debugging)
+# st.markdown('----')
+# st.markdown(f"### {t['form_title']}")
+# with st.form('contact'):
+#     name = st.text_input(t['name'], key='name')
+#     email = st.text_input(t['email'], key='email')
+#     vin = st.text_input(t['vin'], key='vin')
+#     msg = st.text_area(t['message'], key='message')
+#     send_copy = st.checkbox(t['send_copy'], key='send_copy')
+#     attach_pdf = st.checkbox(t['attach_pdf'], key='attach_pdf')
+#     up_file = st.file_uploader(t['upload_file'], key='upload_file')
+#     submit = st.form_submit_button(t['submit'])
 
-if submit:
-    try:
-        # Basic validation
-        if not name:
-            st.error(t['error_name'])
-            st.stop()
-        if not email or '@' not in email:
-            st.error(t['error_email'])
-            st.stop()
-        if stage == t['stage_full'] and not opts:
-            st.error(t['error_select_options'])
-            st.stop()
-
-        # Compose message
-        selection_text = f"""📩 LoS Config Request
-Brand: {brand}
-Model: {model}
-Generation: {gen}
-Engine: {engine}
-Stage: {stage}
-Options: {', '.join(opts) if opts else 'N/A'}
-Name: {name}
-Email: {email}
-VIN: {vin}
-Message: {msg}"""
-
-        # Send to Telegram
-        try:
-            bot = st.secrets['telegram']['token']
-            chat = st.secrets['telegram']['chat_id']
-            requests.post(f"https://api.telegram.org/bot{bot}/sendMessage", data={"chat_id": chat, "text": selection_text})
-            if up_file:
-                requests.post(
-                    f"https://api.telegram.org/bot{bot}/sendDocument", 
-                    data={"chat_id": chat}, 
-                    files={"document": (up_file.name, up_file.getvalue())}
-                )
-        except Exception as e:
-            st.warning(f"Telegram error: {e}")
-
-        # Send copy via email
-        if send_copy:
-            try:
-                from email.message import EmailMessage
-                import smtplib
-                smtp_conf = st.secrets['smtp']
-                em = EmailMessage()
-                em['Subject'] = 'Your LoS Config Copy'
-                em['From'] = smtp_conf['sender_email']
-                em['To'] = email
-                em.set_content(selection_text)
-                # Attach PDF if requested
-                if attach_pdf:
-                    buf = io.BytesIO()
-                    fig.savefig(buf, format='PNG')
-                    buf.seek(0)
-                    tmp = tempfile.NamedTemporaryFile(delete=False, suffix='.png')
-                    tmp.write(buf.getvalue()); tmp.close()
-                    pdf = FPDF(); pdf.add_page(); pdf.image(tmp.name, x=10, y=10, w=190); os.remove(tmp.name)
-                    pdf_bytes = pdf.output(dest='S').encode('latin-1')
-                    em.add_attachment(pdf_bytes, maintype='application', subtype='pdf', filename='LoS_Report.pdf')
-                with smtplib.SMTP_SSL(smtp_conf['server'], smtp_conf['port']) as server:
-                    server.login(smtp_conf['username'], smtp_conf['password'])
-                    server.send_message(em)
-            except Exception as ee:
-                st.warning(f"Email error: {ee}")
-
-        # Offer PDF download
-        if attach_pdf:
-            buf = io.BytesIO()
-            fig.savefig(buf, format='PNG')
-            buf.seek(0)
-            tmp = tempfile.NamedTemporaryFile(delete=False, suffix='.png')
-            tmp.write(buf.getvalue()); tmp.close()
-            pdf = FPDF(); pdf.add_page(); pdf.image(tmp.name, x=10, y=10, w=190); os.remove(tmp.name)
-            pdf_bytes = pdf.output(dest='S').encode('latin-1')
-            st.download_button(t['attach_pdf'], data=pdf_bytes, file_name="LoS_Report.pdf", mime="application/pdf")
-
-        st.success(t['success_message'])
-
-    except Exception as ex:
-        st.error(f"Error during submission: {ex}")
-        import traceback
-        st.text(traceback.format_exc())
+# if submit:
+#     try:
+#         # Basic validation...
+#         st.success(t['success_message'])
+#     except Exception as ex:
+#         st.error(f"Error during submission: {ex}")
+#         import traceback
+#         st.text(traceback.format_exc())
