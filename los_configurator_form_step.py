@@ -10,7 +10,7 @@ st.set_page_config(page_title="Level of Speed Configurator", layout="wide")
 languages = {"en": "English", "ru": "Русский", "de": "Deutsch"}
 
 translations = {
-    # ... (тот же словарь, не изменяем для краткости) ...
+    # ... fill full dictionary here ...
 }
 
 class SafeTranslations(UserDict):
@@ -18,7 +18,7 @@ class SafeTranslations(UserDict):
         return key
 
 # ---------- Language selector (top‑right) ----------
-col_spacer, col_lang = st.columns([10, 2])
+col_spacer, col_lang = st.columns([12, 1])
 with col_lang:
     language = st.selectbox("", list(languages.keys()), format_func=lambda x: languages[x])
 _t = SafeTranslations(translations.get(language, translations.get("en", {})))
@@ -93,19 +93,17 @@ try:
     for i, v in enumerate([orig_hp, tuned_hp]):
         ax1.text(i, v * 1.02, f"{v} hp", ha="center", color="white")
 
-    ax2.bar(["Stock", "LoS"], [orig_tq, tuned_tq], color=["#808080", "#FF0000"])
+    ax2.bar(["Stock", "LoS"], [orig_tq, tuned_tq], color=["#808080", "#ff851b"])
     ax2.set_ylim(0, y_max); ax2.set_title("Torque", color="white")
     for i, v in enumerate([orig_tq, tuned_tq]):
         ax2.text(i, v * 1.02, f"{v} Nm", ha="center", color="white")
 
     plt.tight_layout(); st.pyplot(fig); plt.close(fig)
-    # Show gains below the chart
-    st.markdown(f"**Δ HP:** +{tuned_hp - orig_hp} hp &nbsp;&nbsp; **Δ Torque:** +{tuned_tq - orig_tq} Nm")
 except Exception as e:
     st.exception(e)
 
 # ---------- Contact form ----------
-st.header(_t.get("form_title", "Contact Form"))
+st.header(_t["form_title"])
 with st.form("contact_form"):
     name = st.text_input(_t["name"])
     email = st.text_input(_t["email"])
@@ -116,7 +114,8 @@ with st.form("contact_form"):
     uploaded_file = st.file_uploader(_t["upload_file"], type=["txt", "pdf", "jpg", "png"])
     submit = st.form_submit_button(_t["submit"])
 
-if not submit: st.stop()
+if not submit:
+    st.stop()
 
 if not name:
     st.error(_t["error_name"]); st.stop()
