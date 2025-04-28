@@ -74,6 +74,14 @@ stage = st.selectbox(t['select_stage'], [t['stage_power'], t['stage_options_only
 opts = []
 if stage != t['stage_power']:
     st.markdown('----')
+    import traceback
+    try:
+        opts = st.multiselect(t['options'], engines[engine]['Options'], key='options')
+    except Exception as e:
+        st.error(f"Ошибка в мультиселекте: {e}")
+        st.text(traceback.format_exc())
+        st.stop()
+    st.markdown('----')
     opts = st.multiselect(t['options'], engines[engine]['Options'], key='options')
 
 # Charts completed — now minimal form for debugging
