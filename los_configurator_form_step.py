@@ -80,7 +80,7 @@ translations = {
         "submit": "Senden",
         "success": "Danke! Wir melden uns bald.",
         "error_name": "Bitte Namen eingeben",
-        "error_email": "Bitte gültige E‑Mail eingeben",
+        "error_email": "Bitte gültige E-Mail eingeben",
         "error_select_options": "Wählen Sie mindestens eine Option"
     }
 }
@@ -175,16 +175,33 @@ stage = st.selectbox(
 opts_selected: list[str] = []
 
 # ---------- Charts ----------
-rec = engines_data[engine]
-orig_hp, tuned_hp = rec["Original HP"], rec["Tuned HP"]
-orig_tq, tuned_tq = rec["Original Torque"], rec["Tuned Torque"]
-y_max = max(orig_hp, tuned_hp, orig_tq, tuned_tq) * 1.2
+try:
+    rec = engines_data[engine]
+    orig_hp, tuned_hp = rec["Original HP"], rec["Tuned HP"]
+    orig_tq, tuned_tq = rec["Original Torque"], rec["Tuned Torque"]
+    y_max = max(orig_hp, tuned_hp, orig_tq, tuned_tq) * 1.2
 
-st.markdown("---")
-fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 4))
-ax1.bar(["Stock", "LoS"], [orig_hp, tuned_hp]); ax1.set_ylim(0, y_max); ax1.set_title("HP")
-for i, v in enumerate([orig_hp, tuned_hp]): ax1.text(i, v * 1.02, f"{v} hp", ha="center")
-ax2.bar(["Stock", "LoS"], [orig_tq, tuned_tq]); ax2.set_ylim(0, y_max); ax2.set_title("Torque")
-for i, v in enumerate([orig_tq, tuned_tq]): ax2.text(i, v * 1.02, f"{v} Nm", ha="center")
-plt.tight_layout()
-st.pyplot
+    st.markdown("---")
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 4))
+    ax1.bar(["Stock", "LoS"], [orig_hp, tuned_hp]); ax1.set_ylim(0, y_max); ax1.set_title("HP")
+    for i, v in enumerate([orig_hp, tuned_hp]): ax1.text(i, v * 1.02, f"{v} hp", ha="center")
+    ax2.bar(["Stock", "LoS"], [orig_tq, tuned_tq]); ax2.set_ylim(0, y_max); ax2.set_title("Torque")
+    for i, v in enumerate([orig_tq, tuned_tq]): ax2.text(i, v * 1.02, f"{v} Nm", ha="center")
+    plt.tight_layout()
+    st.pyplot(fig)
+    plt.close(fig)
+except Exception as e:
+    st.exception(e)
+
+# ---------- Options ----------
+if stage in (_t["stage_full"], _t["stage_options_only"]):
+    st.markdown("----")
+    opts_selected = st.multiselect(_t["options"], rec.get("Options", []), key="options")
+
+st.write("")
+
+# ---------- Contact form ----------
+st.header(_t["form_title"])
+with st.form("contact_form"):
+    name = st.text_input(_t["name"])
+    email
