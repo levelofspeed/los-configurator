@@ -92,8 +92,7 @@ class SafeTranslations(UserDict):
         return key
 
 # ---------- Load selected language ----------
-language = st.sidebar.selectbox("🌐 Language / Язык / Sprache", list(languages.keys()),
-                                format_func=lambda x: languages[x])
+language = st.sidebar.selectbox("🌐 Language / Язык / Sprache", list(languages.keys()), format_func=lambda x: languages[x])
 _t = SafeTranslations(translations.get(language, translations["en"]))
 
 # ---------- DB helpers ----------
@@ -119,61 +118,31 @@ def _clear_state(*keys):
 # ---------- UI ----------
 st.title("🚗 Level of Speed Configurator")
 
-brand = st.selectbox(
-    _t["select_brand"],
-    [""] + sorted(database.keys()),
-    key="brand",
-    on_change=lambda: _clear_state("model", "generation", "fuel", "engine", "stage", "options"),
-)
+brand = st.selectbox(_t["select_brand"], [""] + sorted(database.keys()), key="brand", on_change=lambda: _clear_state("model", "generation", "fuel", "engine", "stage", "options"))
 if not brand:
     st.stop()
 
-model = st.selectbox(
-    _t["select_model"],
-    [""] + sorted(database[brand].keys()),
-    key="model",
-    on_change=lambda: _clear_state("generation", "fuel", "engine", "stage", "options"),
-)
+model = st.selectbox(_t["select_model"], [""] + sorted(database[brand].keys()), key="model", on_change=lambda: _clear_state("generation", "fuel", "engine", "stage", "options"))
 if not model:
     st.stop()
 
-generation = st.selectbox(
-    _t["select_generation"],
-    [""] + sorted(database[brand][model].keys()),
-    key="generation",
-    on_change=lambda: _clear_state("fuel", "engine", "stage", "options"),
-)
+generation = st.selectbox(_t["select_generation"], [""] + sorted(database[brand][model].keys()), key="generation", on_change=lambda: _clear_state("fuel", "engine", "stage", "options"))
 if not generation:
     st.stop()
 
 engines_data = database[brand][model][generation]
 fuels = sorted({d.get("Type") for d in engines_data.values() if isinstance(d, dict) and d})
 
-fuel = st.selectbox(
-    _t["select_fuel"],
-    [""] + fuels,
-    key="fuel",
-    on_change=lambda: _clear_state("engine", "stage", "options"),
-)
+fuel = st.selectbox(_t["select_fuel"], [""] + fuels, key="fuel", on_change=lambda: _clear_state("engine", "stage", "options"))
 if not fuel:
     st.stop()
 
 engines = [name for name, d in engines_data.items() if isinstance(d, dict) and d.get("Type") == fuel]
-engine = st.selectbox(
-    _t["select_engine"],
-    [""] + engines,
-    key="engine",
-    on_change=lambda: _clear_state("stage", "options"),
-)
+engine = st.selectbox(_t["select_engine"], [""] + engines, key="engine", on_change=lambda: _clear_state("stage", "options"))
 if not engine:
     st.stop()
 
-stage = st.selectbox(
-    _t["select_stage"],
-    [_t["stage_power"], _t["stage_options_only"], _t["stage_full"]],
-    key="stage",
-    on_change=lambda: _clear_state("options"),
-)
+stage = st.selectbox(_t["select_stage"], [_t["stage_power"], _t["stage_options_only"], _t["stage_full"]], key="stage", on_change=lambda: _clear_state("options"))
 opts_selected: list[str] = []
 
 # ---------- Charts ----------
@@ -189,9 +158,7 @@ try:
     for i, v in enumerate([orig_hp, tuned_hp]): ax1.text(i, v * 1.02, f"{v} hp", ha="center")
     ax2.bar(["Stock", "LoS"], [orig_tq, tuned_tq]); ax2.set_ylim(0, y_max); ax2.set_title("Torque")
     for i, v in enumerate([orig_tq, tuned_tq]): ax2.text(i, v * 1.02, f"{v} Nm", ha="center")
-    plt.tight_layout()
-    st.pyplot(fig)
-    plt.close(fig)
+    plt.tight_layout(); st.pyplot(fig); plt.close(fig)
 except Exception as e:
     st.exception(e)
 
@@ -205,4 +172,8 @@ st.write("")
 # ---------- Contact form ----------
 st.header(_t["form_title"])
 with st.form("contact_form"):
-    name = st.text_input(_t[
+    name = st.text_input(_t["name"])
+    email = st.text_input(_t["email"])
+    vin = st.text_input(_t["vin"])
+    message = st.text_area(_t["message"], height=120)
+    send_copy = st.checkbox(_t[
