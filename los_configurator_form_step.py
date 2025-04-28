@@ -1,4 +1,11 @@
 import streamlit as st
+import os
+import json
+import matplotlib.pyplot as plt
+import io
+import requests
+import tempfile
+from fpdf import FPDF
 
 # Page configuration
 st.set_page_config(page_title="Level of Speed Configurator", layout="wide")
