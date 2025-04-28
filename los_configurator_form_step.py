@@ -23,7 +23,12 @@ cols = st.columns([1, 8, 1])
 with cols[1]:
     logo = os.path.join(os.getcwd(), "logo.png")
     if os.path.exists(logo):
-        st.image(logo, use_column_width=True)
+        try:
+            # use_container_width is preferred in newer Streamlit versions
+            st.image(logo, use_container_width=True)
+        except TypeError:
+            # fallback for older versions
+            st.image(logo, use_column_width=True)
 
 # Language selector and title
 lang_cols = st.columns([8, 1])
