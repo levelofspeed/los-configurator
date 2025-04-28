@@ -124,7 +124,7 @@ with cols[1]:
 langcols = st.columns([8, 1])
 with langcols[1]:
     language = st.selectbox(
-        t['select_language'], dirs, index=dirs.index('en'),
+        translations['en']['select_language'], dirs, index=dirs.index('en'),
         format_func=lambda c: languages[c], key='language', label_visibility='collapsed'
     )
 with langcols[0]:
