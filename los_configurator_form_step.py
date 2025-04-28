@@ -114,4 +114,19 @@ with st.form("contact_form"):
     email = st.text_input(_t["email"])
     vin = st.text_input(_t["vin"])
     message = st.text_area(_t["message"], height=120)
-    send_copy = st.checkbox(_t
+    send_copy = st.checkbox(_t["send_copy"])
+    attach_pdf = st.checkbox(_t["attach_pdf"])
+    uploaded_file = st.file_uploader(_t["upload_file"], type=["txt", "pdf", "jpg", "png"])
+    submit = st.form_submit_button(_t["submit"])
+
+# ---------- Form validation ----------
+if not submit:
+    st.stop()
+if not name:
+    st.error(_t["error_name"]); st.stop()
+if not email or "@" not in email:
+    st.error(_t["error_email"]); st.stop()
+if stage == _t["stage_full"] and not opts_selected:
+    st.error(_t["error_select_options"]); st.stop()
+
+st.success(_t["success"])
