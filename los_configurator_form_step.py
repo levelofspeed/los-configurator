@@ -111,6 +111,10 @@ translations = {
     }
 }
 
+# Initialize session state
+if 'language' not in st.session_state:
+    st.session_state.language = 'en'
+
 dirs = list(languages.keys())
 
 # Logo and title
@@ -124,9 +128,14 @@ with cols[1]:
 langcols = st.columns([8, 1])
 with langcols[1]:
     language = st.selectbox(
-        translations['en']['select_language'], dirs, index=dirs.index('en'),
-        format_func=lambda c: languages[c], key='language', label_visibility='collapsed'
+        translations[st.session_state.language]['select_language'], 
+        dirs, 
+        index=dirs.index(st.session_state.language),
+        format_func=lambda c: languages[c], 
+        key='language_selector'
     )
+    st.session_state.language = language
+
 with langcols[0]:
     st.title(translations[language]['title'])
 
@@ -142,129 +151,234 @@ def load_db():
 database = load_db()
 
 # Selection steps
-brand = st.selectbox(t['select_brand'], [''] + list(database.keys()), key='brand')
-if not brand: st.stop()
-model = st.selectbox(t['select_model'], [''] + list(database[brand].keys()), key='model')
-if not model: st.stop()
-generation = st.selectbox(t['select_generation'], [''] + list(database[brand][model].keys()), key='generation')
-if not generation: st.stop()
+brand = st.selectbox(
+    t['select_brand'], 
+    [''] + list(database.keys()), 
+    key='brand_selection'
+)
+if not brand: 
+    st.stop()
+
+model = st.selectbox(
+    t['select_model'], 
+    [''] + list(database[brand].keys()), 
+    key='model_selection'
+)
+if not model: 
+    st.stop()
+
+generation = st.selectbox(
+    t['select_generation'], 
+    [''] + list(database[brand][model].keys()), 
+    key='generation_selection'
+)
+if not generation: 
+    st.stop()
 
 engines_data = database[brand][model][generation]
 fuels = sorted({d.get('Type') for d in engines_data.values() if isinstance(d, dict)})
-fuel = st.selectbox(t['select_fuel'], [''] + fuels, key='fuel')
-if not fuel: st.stop()
+fuel = st.selectbox(
+    t['select_fuel'], 
+    [''] + fuels, 
+    key='fuel_selection'
+)
+if not fuel: 
+    st.stop()
 
 engines = [name for name, d in engines_data.items() if isinstance(d, dict) and d.get('Type') == fuel]
-engine = st.selectbox(t['select_engine'], [''] + engines, key='engine')
-if not engine: st.stop()
+engine = st.selectbox(
+    t['select_engine'], 
+    [''] + engines, 
+    key='engine_selection'
+)
+if not engine: 
+    st.stop()
 
-stage = st.selectbox(t['select_stage'], [t['stage_power'], t['stage_options_only'], t['stage_full']], key='stage')
+stage = st.selectbox(
+    t['select_stage'], 
+    [t['stage_power'], t['stage_options_only'], t['stage_full']], 
+    key='stage_selection'
+)
+
 opts_selected = []
 if stage != t['stage_power']:
     st.markdown('----')
-    opts_selected = st.multiselect(t['options'], engines_data[engine]['Options'], key='options')
+    opts_selected = st.multiselect(
+        t['options'], 
+        engines_data[engine]['Options'], 
+        key='options_selection'
+    )
 
 st.write('')
 
 # Charts with equal axes
-rec = engines_data[engine]
-orig_hp, tuned_hp = rec['Original HP'], rec['Tuned HP']
-orig_tq, tuned_tq = rec['Original Torque'], rec['Tuned Torque']
-y_max = max(orig_hp, tuned_hp, orig_tq, tuned_tq) * 1.2
-fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 5), facecolor='black')
-# HP
-ax1.set_facecolor('black')
-ax1.bar(['Stock', 'LoS'], [orig_hp, tuned_hp], color=['#A0A0A0', '#FF0000'])
-ax1.set_ylim(0, y_max)
-for i, v in enumerate([orig_hp, tuned_hp]): ax1.text(i, v * 1.02, f"{v} hp", ha='center', color='white')
-ax1.text(0.5, -0.15, t['difference_hp'].format(hp=tuned_hp - orig_hp), transform=ax1.transAxes, ha='center', color='white')
-ax1.set_ylabel(t['original_hp'], color='white'); ax1.tick_params(colors='white')
-# Torque
-ax2.set_facecolor('black')
-ax2.bar(['Stock', 'LoS'], [orig_tq, tuned_tq], color=['#A0A0A0', '#FF0000'])
-ax2.set_ylim(0, y_max)
-for i, v in enumerate([orig_tq, tuned_tq]): ax2.text(i, v * 1.02, f"{v} Nm", ha='center', color='white')
-ax2.text(0.5, -0.15, t['difference_torque'].format(torque=tuned_tq - orig_tq), transform=ax2.transAxes, ha='center', color='white')
-ax2.set_ylabel(t['original_torque'], color='white'); ax2.tick_params(colors='white')
-plt.tight_layout(); st.pyplot(fig); plt.close(fig)
+try:
+    rec = engines_data[engine]
+    orig_hp, tuned_hp = rec['Original HP'], rec['Tuned HP']
+    orig_tq, tuned_tq = rec['Original Torque'], rec['Tuned Torque']
+    y_max = max(orig_hp, tuned_hp, orig_tq, tuned_tq) * 1.2
+    
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 5), facecolor='black')
+    
+    # HP plot
+    ax1.set_facecolor('black')
+    ax1.bar(['Stock', 'LoS'], [orig_hp, tuned_hp], color=['#A0A0A0', '#FF0000'])
+    ax1.set_ylim(0, y_max)
+    for i, v in enumerate([orig_hp, tuned_hp]): 
+        ax1.text(i, v * 1.02, f"{v} hp", ha='center', color='white')
+    ax1.text(0.5, -0.15, t['difference_hp'].format(hp=tuned_hp - orig_hp), 
+             transform=ax1.transAxes, ha='center', color='white')
+    ax1.set_ylabel(t['original_hp'], color='white')
+    ax1.tick_params(colors='white')
+    
+    # Torque plot
+    ax2.set_facecolor('black')
+    ax2.bar(['Stock', 'LoS'], [orig_tq, tuned_tq], color=['#A0A0A0', '#FF0000'])
+    ax2.set_ylim(0, y_max)
+    for i, v in enumerate([orig_tq, tuned_tq]): 
+        ax2.text(i, v * 1.02, f"{v} Nm", ha='center', color='white')
+    ax2.text(0.5, -0.15, t['difference_torque'].format(torque=tuned_tq - orig_tq), 
+             transform=ax2.transAxes, ha='center', color='white')
+    ax2.set_ylabel(t['original_torque'], color='white')
+    ax2.tick_params(colors='white')
+    
+    plt.tight_layout()
+    st.pyplot(fig, clear_figure=True)
+    plt.close(fig)
+except Exception as e:
+    st.error(f"Error generating charts: {str(e)}")
 
 # Contact form
-st.markdown('----'); st.markdown(f"### {t['form_title']}")
+st.markdown('----')
+st.markdown(f"### {t['form_title']}")
+
 with st.form('contact_form'):
-    name = st.text_input(t['name'], key='name')
-    email = st.text_input(t['email'], key='email')
-    vin = st.text_input(t['vin'], key='vin')
-    message = st.text_area(t['message'], key='message')
-    send_copy = st.checkbox(t['send_copy'], key='send_copy')
-    attach_pdf = st.checkbox(t['attach_pdf'], key='attach_pdf')
-    uploaded_file = st.file_uploader(t['upload_file'], key='upload_file')
+    name = st.text_input(t['name'], key='form_name')
+    email = st.text_input(t['email'], key='form_email')
+    vin = st.text_input(t['vin'], key='form_vin')
+    message = st.text_area(t['message'], key='form_message')
+    send_copy = st.checkbox(t['send_copy'], key='form_send_copy')
+    attach_pdf = st.checkbox(t['attach_pdf'], key='form_attach_pdf')
+    uploaded_file = st.file_uploader(t['upload_file'], key='form_upload_file')
     submit = st.form_submit_button(t['submit'])
 
 if submit:
-    if not name: st.error(t['error_name']); st.stop()
-    if not email or '@' not in email: st.error(t['error_email']); st.stop()
-    if stage == t['stage_full'] and not opts_selected: st.error(t['error_select_options']); st.stop()
-    opts = ', '.join(opts_selected) if opts_selected else 'N/A'
-
-    msg_text = (
-        f"📩 New LoS Config Request\n"
-        f"Brand: {brand}\n"
-        f"Model: {model}\n"
-        f"Generation: {generation}\n"
-        f"Engine: {engine}\n"
-        f"Stage: {stage}\n"
-        f"Options: {opts}\n"
-        f"Name: {name}\n"
-        f"Email: {email}\n"
-        f"VIN: {vin}\n"
-        f"Message: {message}"
-    )
-
-    # Telegram notification
-    try:
-        bot = st.secrets['telegram']['token']
-        chat = st.secrets['telegram']['chat_id']
-        requests.post(f"https://api.telegram.org/bot{bot}/sendMessage", data={"chat_id": chat, "text": msg_text})
-        if uploaded_file:
-            requests.post(f"https://api.telegram.org/bot{bot}/sendDocument", data={"chat_id": chat}, files={"document": (uploaded_file.name, uploaded_file.getvalue())})
-    except Exception as e:
-        st.warning(f"Telegram error: {e}")
-
-    # Send copy to client via email
-    if send_copy:
+    errors = []
+    if not name:
+        errors.append(t['error_name'])
+    if not email or '@' not in email:
+        errors.append(t['error_email'])
+    if stage == t['stage_full'] and not opts_selected:
+        errors.append(t['error_select_options'])
+    
+    if errors:
+        for error in errors:
+            st.error(error)
+    else:
         try:
-            from email.message import EmailMessage
-            import smtplib
-            smtp_conf = st.secrets['smtp']
-            email_msg = EmailMessage()
-            email_msg['Subject'] = 'Your LoS Configurator Copy'
-            email_msg['From'] = smtp_conf['sender_email']
-            email_msg['To'] = email
-            email_msg.set_content(msg_text)
+            opts = ', '.join(opts_selected) if opts_selected else 'N/A'
+
+            msg_text = (
+                f"📩 New LoS Config Request\n"
+                f"Brand: {brand}\n"
+                f"Model: {model}\n"
+                f"Generation: {generation}\n"
+                f"Engine: {engine}\n"
+                f"Stage: {stage}\n"
+                f"Options: {opts}\n"
+                f"Name: {name}\n"
+                f"Email: {email}\n"
+                f"VIN: {vin}\n"
+                f"Message: {message}"
+            )
+
+            # Telegram notification
+            try:
+                bot = st.secrets['telegram']['token']
+                chat = st.secrets['telegram']['chat_id']
+                requests.post(
+                    f"https://api.telegram.org/bot{bot}/sendMessage", 
+                    data={"chat_id": chat, "text": msg_text}
+                )
+                if uploaded_file:
+                    requests.post(
+                        f"https://api.telegram.org/bot{bot}/sendDocument", 
+                        data={"chat_id": chat}, 
+                        files={"document": (uploaded_file.name, uploaded_file.getvalue())}
+                    )
+            except Exception as e:
+                st.warning(f"Telegram error: {str(e)}")
+
+            # Send copy to client via email
+            if send_copy:
+                try:
+                    from email.message import EmailMessage
+                    import smtplib
+                    
+                    smtp_conf = st.secrets['smtp']
+                    email_msg = EmailMessage()
+                    email_msg['Subject'] = 'Your LoS Configurator Copy'
+                    email_msg['From'] = smtp_conf['sender_email']
+                    email_msg['To'] = email
+                    email_msg.set_content(msg_text)
+                    
+                    if attach_pdf:
+                        buf = io.BytesIO()
+                        fig.savefig(buf, format='PNG')
+                        buf.seek(0)
+                        with tempfile.NamedTemporaryFile(delete=False, suffix='.png') as tmp:
+                            tmp.write(buf.getvalue())
+                            tmp_path = tmp.name
+                        
+                        try:
+                            pdf = FPDF()
+                            pdf.add_page()
+                            pdf.image(tmp_path, x=10, y=10, w=190)
+                            pdf_bytes = pdf.output(dest='S').encode('latin-1')
+                            email_msg.add_attachment(
+                                pdf_bytes, 
+                                maintype='application', 
+                                subtype='pdf', 
+                                filename='LoS_Report.pdf'
+                            )
+                        finally:
+                            os.remove(tmp_path)
+                    
+                    with smtplib.SMTP_SSL(smtp_conf['server'], smtp_conf['port']) as server:
+                        server.login(smtp_conf['username'], smtp_conf['password'])
+                        server.send_message(email_msg)
+                
+                except Exception as ee:
+                    st.warning(f"Email error: {str(ee)}")
+
+            # Offer PDF download
             if attach_pdf:
-                buf = io.BytesIO()
-                fig.savefig(buf, format='PNG')
-                buf.seek(0)
-                tmp = tempfile.NamedTemporaryFile(delete=False, suffix='.png')
-                tmp.write(buf.getvalue()); tmp.close()
-                pdf = FPDF(); pdf.add_page(); pdf.image(tmp.name, x=10, y=10, w=190); os.remove(tmp.name)
-                pdf_bytes = pdf.output(dest='S').encode('latin-1')
-                email_msg.add_attachment(pdf_bytes, maintype='application', subtype='pdf', filename='LoS_Report.pdf')
-            with smtplib.SMTP_SSL(smtp_conf['server'], smtp_conf['port']) as server:
-                server.login(smtp_conf['username'], smtp_conf['password'])
-                server.send_message(email_msg)
-        except Exception as ee:
-            st.warning(f"Email error: {ee}")
+                try:
+                    buf = io.BytesIO()
+                    fig.savefig(buf, format='PNG')
+                    buf.seek(0)
+                    with tempfile.NamedTemporaryFile(delete=False, suffix='.png') as tmp:
+                        tmp.write(buf.getvalue())
+                        tmp_path = tmp.name
+                    
+                    try:
+                        pdf = FPDF()
+                        pdf.add_page()
+                        pdf.image(tmp_path, x=10, y=10, w=190)
+                        pdf_bytes = pdf.output(dest='S').encode('latin-1')
+                        st.download_button(
+                            t['attach_pdf'], 
+                            data=pdf_bytes, 
+                            file_name="LoS_Report.pdf", 
+                            mime="application/pdf"
+                        )
+                    finally:
+                        os.remove(tmp_path)
+                
+                except Exception as e:
+                    st.warning(f"PDF generation error: {str(e)}")
 
-    # Offer PDF download
-    if attach_pdf:
-        buf = io.BytesIO()
-        fig.savefig(buf, format='PNG')
-        buf.seek(0)
-        tmp = tempfile.NamedTemporaryFile(delete=False, suffix='.png')
-        tmp.write(buf.getvalue()); tmp.close()
-        pdf = FPDF(); pdf.add_page(); pdf.image(tmp.name, x=10, y=10, w=190); os.remove(tmp.name)
-        pdf_bytes = pdf.output(dest='S').encode('latin-1')
-        st.download_button(t['attach_pdf'], data=pdf_bytes, file_name="LoS_Report.pdf", mime="application/pdf")
-
-    st.success(t['success_message'])
+            st.success(t['success_message'])
+        
+        except Exception as e:
+            st.error(f"An unexpected error occurred: {str(e)}")
