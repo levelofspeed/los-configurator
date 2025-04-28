@@ -1,27 +1,25 @@
 import streamlit as st
 import matplotlib.pyplot as plt
-import os
-import json
-import requests
-import io
-import tempfile
-from fpdf import FPDF
+import os, json
+from collections import UserDict
 
-# Page config
+# ---------- Page config ----------
 st.set_page_config(page_title="Level of Speed Configurator", layout="wide")
 
-# Multilanguage support
+# ---------- Translations ----------
 languages = {"en": "English", "ru": "Русский", "de": "Deutsch"}
+
 translations = {
     "en": {
-        "select_language": "Select Language",
-        "title": "Level of Speed Configurator",
         "select_brand": "Select Brand",
         "select_model": "Select Model",
         "select_generation": "Select Generation",
         "select_fuel": "Select Fuel",
         "select_engine": "Select Engine",
         "select_stage": "Select Stage",
+        "stage_power": "Power only",
+        "stage_options_only": "Options only",
+        "stage_full": "Full package",
         "options": "Options",
         "form_title": "Contact Us",
         "name": "Name",
@@ -32,239 +30,166 @@ translations = {
         "attach_pdf": "Attach PDF",
         "upload_file": "Attach file",
         "submit": "Submit",
-        "error_name": "Please enter your name.",
-        "error_email": "Please enter a valid email.",
-        "error_select_options": "Please select at least one option for full package.",
-        "stage_power": "Power Increase Only",
-        "stage_options_only": "Options Only",
-        "stage_full": "Full Package",
-        "difference_hp": "+{hp} hp",
-        "difference_torque": "+{torque} Nm",
-        "original_hp": "Original / Tuned HP",
-        "original_torque": "Original / Tuned Torque",
-        "no_data": "No data available for this selection.",
-        "success_message": "Thank you! Your request has been submitted."
+        "success": "Thank you! We will contact you soon.",
+        "error_name": "Please enter your name",
+        "error_email": "Please enter a valid email",
+        "error_select_options": "Select at least one option"
     },
     "ru": {
-        "select_language": "Выбор языка",
-        "title": "Конфигуратор Level of Speed",
         "select_brand": "Выберите марку",
         "select_model": "Выберите модель",
         "select_generation": "Выберите поколение",
-        "select_fuel": "Выберите топливо",
+        "select_fuel": "Выберите тип топлива",
         "select_engine": "Выберите двигатель",
-        "select_stage": "Выберите стейдж",
+        "select_stage": "Выберите Stage",
+        "stage_power": "Только мощность",
+        "stage_options_only": "Только опции",
+        "stage_full": "Полный пакет",
         "options": "Опции",
-        "form_title": "Контактная форма",
+        "form_title": "Свяжитесь с нами",
         "name": "Имя",
         "email": "Email",
         "vin": "VIN",
         "message": "Сообщение",
-        "send_copy": "Отправить копию мне",
-        "attach_pdf": "Прикрепить PDF",
-        "upload_file": "Прикрепить файл",
+        "send_copy": "Прислать копию",
+        "attach_pdf": "Приложить PDF",
+        "upload_file": "Загрузить файл",
         "submit": "Отправить",
-        "error_name": "Пожалуйста, введите имя.",
-        "error_email": "Пожалуйста, введите корректный Email.",
-        "error_select_options": "Пожалуйста, выберите хотя бы одну опцию для полного пакета.",
-        "stage_power": "Только мощность",
-        "stage_options_only": "Только опции",
-        "stage_full": "Полный пакет",
-        "difference_hp": "+{hp} л.с.",
-        "difference_torque": "+{torque} Нм",
-        "original_hp": "Оригинал / Тюнинг л.с.",
-        "original_torque": "Оригинал / Тюнинг Нм",
-        "no_data": "Нет данных для выбранной конфигурации.",
-        "success_message": "Спасибо! Ваша заявка отправлена."
+        "success": "Спасибо! Мы скоро свяжемся с вами.",
+        "error_name": "Введите имя",
+        "error_email": "Введите корректный email",
+        "error_select_options": "Выберите хотя бы одну опцию"
     },
     "de": {
-        "select_language": "Sprache wählen",
-        "title": "Level of Speed Konfigurator",
-        "select_brand": "Marke wählen",
-        "select_model": "Modell wählen",
-        "select_generation": "Generation wählen",
-        "select_fuel": "Kraftstoff wählen",
-        "select_engine": "Motor wählen",
-        "select_stage": "Stufe wählen",
+        "select_brand": "Marke auswählen",
+        "select_model": "Modell auswählen",
+        "select_generation": "Generation auswählen",
+        "select_fuel": "Kraftstoff auswählen",
+        "select_engine": "Motor auswählen",
+        "select_stage": "Stage auswählen",
+        "stage_power": "Nur Leistung",
+        "stage_options_only": "Nur Optionen",
+        "stage_full": "Komplettpaket",
         "options": "Optionen",
-        "form_title": "Kontaktformular",
+        "form_title": "Kontakt",
         "name": "Name",
         "email": "E-Mail",
         "vin": "VIN",
         "message": "Nachricht",
         "send_copy": "Kopie an mich senden",
-        "attach_pdf": "PDF-Bericht anhängen",
+        "attach_pdf": "PDF anhängen",
         "upload_file": "Datei anhängen",
         "submit": "Senden",
-        "error_name": "Bitte geben Sie Ihren Namen ein.",
-        "error_email": "Bitte geben Sie eine gültige E-Mail-Adresse ein.",
-        "error_select_options": "Bitte wählen Sie mindestens eine Option für das vollständige Paket.",
-        "stage_power": "Nur Leistung",
-        "stage_options_only": "Nur Optionen",
-        "stage_full": "Komplettpaket",
-        "difference_hp": "+{hp} PS",
-        "difference_torque": "+{torque} Nm",
-        "original_hp": "Original / Getunte PS",
-        "original_torque": "Original / Getunter Nm",
-        "no_data": "Für diese Konfiguration sind keine Daten verfügbar.",
-        "success_message": "Vielen Dank! Ihre Anfrage wurde gesendet."
+        "success": "Danke! Wir melden uns bald.",
+        "error_name": "Bitte Namen eingeben",
+        "error_email": "Bitte gültige E‑Mail eingeben",
+        "error_select_options": "Wählen Sie mindestens eine Option"
     }
 }
 
-dirs = list(languages.keys())
+class SafeTranslations(UserDict):
+    def __missing__(self, key):
+        return key
 
-# Logo and title
-cols = st.columns([1, 8, 1])
-with cols[1]:
-    logo_path = os.path.join(os.getcwd(), 'logo.png')
-    if os.path.exists(logo_path):
-        st.image(logo_path, use_container_width=True)
+# ---------- Load selected language ----------
+language = st.sidebar.selectbox("🌐 Language / Язык / Sprache", list(languages.keys()), format_func=lambda x: languages[x])
+_t = SafeTranslations(translations.get(language, translations["en"]))
 
-# Language selector and app title
-langcols = st.columns([8, 1])
-with langcols[1]:
-    language = st.selectbox(
-        translations['en']['select_language'], dirs, index=dirs.index('en'),
-        format_func=lambda c: languages[c], key='language', label_visibility='collapsed'
-    )
-with langcols[0]:
-    st.title(translations[language]['title'])
-
-t = translations[language]
-
-# Load database
+# ---------- DB helpers ----------
 @st.cache_data
 def load_db():
-    db_path = os.path.join(os.getcwd(), 'data', 'full_database.json')
-    with open(db_path, encoding='utf-8') as f:
+    db_path = os.path.join(os.getcwd(), "data", "full_database.json")
+    with open(db_path, encoding="utf-8") as f:
         return json.load(f)
 
-database = load_db()
+def _prune_empty(node):
+    if isinstance(node, dict):
+        cleaned = {k: _prune_empty(v) for k, v in node.items()}
+        return {k: v for k, v in cleaned.items() if v not in (None, {}, [], "")}
+    return node
 
-# Selection steps
-brand = st.selectbox(t['select_brand'], [''] + list(database.keys()), key='brand')
-if not brand: st.stop()
-model = st.selectbox(t['select_model'], [''] + list(database[brand].keys()), key='model')
-if not model: st.stop()
-generation = st.selectbox(t['select_generation'], [''] + list(database[brand][model].keys()), key='generation')
-if not generation: st.stop()
+database = _prune_empty(load_db())
+
+# ---------- Session helpers ----------
+def _clear_state(*keys):
+    for k in keys:
+        st.session_state.pop(k, None)
+
+# ---------- UI ----------
+st.title("🚗 Level of Speed Configurator")
+
+brand = st.selectbox(_t["select_brand"], [""] + sorted(database.keys()), key="brand", on_change=lambda: _clear_state("model", "generation", "fuel", "engine", "stage", "options"))
+if not brand:
+    st.stop()
+
+model = st.selectbox(_t["select_model"], [""] + sorted(database[brand].keys()), key="model", on_change=lambda: _clear_state("generation", "fuel", "engine", "stage", "options"))
+if not model:
+    st.stop()
+
+generation = st.selectbox(_t["select_generation"], [""] + sorted(database[brand][model].keys()), key="generation", on_change=lambda: _clear_state("fuel", "engine", "stage", "options"))
+if not generation:
+    st.stop()
 
 engines_data = database[brand][model][generation]
-fuels = sorted({d.get('Type') for d in engines_data.values() if isinstance(d, dict)})
-fuel = st.selectbox(t['select_fuel'], [''] + fuels, key='fuel')
-if not fuel: st.stop()
+fuels = sorted({d.get("Type") for d in engines_data.values() if isinstance(d, dict) and d})
 
-engines = [name for name, d in engines_data.items() if isinstance(d, dict) and d.get('Type') == fuel]
-engine = st.selectbox(t['select_engine'], [''] + engines, key='engine')
-if not engine: st.stop()
+fuel = st.selectbox(_t["select_fuel"], [""] + fuels, key="fuel", on_change=lambda: _clear_state("engine", "stage", "options"))
+if not fuel:
+    st.stop()
 
-stage = st.selectbox(t['select_stage'], [t['stage_power'], t['stage_options_only'], t['stage_full']], key='stage')
-opts_selected = []
-if stage != t['stage_power']:
-    st.markdown('----')
-    opts_selected = st.multiselect(t['options'], engines_data[engine]['Options'], key='options')
+engines = [name for name, d in engines_data.items() if isinstance(d, dict) and d.get("Type") == fuel]
+engine = st.selectbox(_t["select_engine"], [""] + engines, key="engine", on_change=lambda: _clear_state("stage", "options"))
+if not engine:
+    st.stop()
 
-st.write('')
+stage = st.selectbox(_t["select_stage"], [_t["stage_power"], _t["stage_options_only"], _t["stage_full"]], key="stage", on_change=lambda: _clear_state("options"))
 
-# Charts with equal axes
-rec = engines_data[engine]
-orig_hp, tuned_hp = rec['Original HP'], rec['Tuned HP']
-orig_tq, tuned_tq = rec['Original Torque'], rec['Tuned Torque']
-y_max = max(orig_hp, tuned_hp, orig_tq, tuned_tq) * 1.2
-fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 5), facecolor='black')
-# HP
-ax1.set_facecolor('black')
-ax1.bar(['Stock', 'LoS'], [orig_hp, tuned_hp], color=['#A0A0A0', '#FF0000'])
-ax1.set_ylim(0, y_max)
-for i, v in enumerate([orig_hp, tuned_hp]): ax1.text(i, v * 1.02, f"{v} hp", ha='center', color='white')
-ax1.text(0.5, -0.15, t['difference_hp'].format(hp=tuned_hp - orig_hp), transform=ax1.transAxes, ha='center', color='white')
-ax1.set_ylabel(t['original_hp'], color='white'); ax1.tick_params(colors='white')
-# Torque
-ax2.set_facecolor('black')
-ax2.bar(['Stock', 'LoS'], [orig_tq, tuned_tq], color=['#A0A0A0', '#FF0000'])
-ax2.set_ylim(0, y_max)
-for i, v in enumerate([orig_tq, tuned_tq]): ax2.text(i, v * 1.02, f"{v} Nm", ha='center', color='white')
-ax2.text(0.5, -0.15, t['difference_torque'].format(torque=tuned_tq - orig_tq), transform=ax2.transAxes, ha='center', color='white')
-ax2.set_ylabel(t['original_torque'], color='white'); ax2.tick_params(colors='white')
-plt.tight_layout(); st.pyplot(fig); plt.close(fig)
+# ---------- Options under Stage ----------
+opts_selected: list[str] = []
+if stage in (_t["stage_full"], _t["stage_options_only"]):
+    opts_selected = st.multiselect(_t["options"], engines_data[engine].get("Options", []), key="options")
 
-# Contact form
-st.markdown('----'); st.markdown(f"### {t['form_title']}")
-with st.form('contact_form'):
-    name = st.text_input(t['name'], key='name')
-    email = st.text_input(t['email'], key='email')
-    vin = st.text_input(t['vin'], key='vin')
-    message = st.text_area(t['message'], key='message')
-    send_copy = st.checkbox(t['send_copy'], key='send_copy')
-    attach_pdf = st.checkbox(t['attach_pdf'], key='attach_pdf')
-    uploaded_file = st.file_uploader(t['upload_file'], key='upload_file')
-    submit = st.form_submit_button(t['submit'])
+st.markdown("---")
 
-if submit:
-    if not name: st.error(t['error_name']); st.stop()
-    if not email or '@' not in email: st.error(t['error_email']); st.stop()
-    if stage == t['stage_full'] and not opts_selected: st.error(t['error_select_options']); st.stop()
-    opts = ', '.join(opts_selected) if opts_selected else 'N/A'
+# ---------- Charts ----------
+try:
+    rec = engines_data[engine]
+    orig_hp, tuned_hp = rec["Original HP"], rec["Tuned HP"]
+    orig_tq, tuned_tq = rec["Original Torque"], rec["Tuned Torque"]
+    y_max = max(orig_hp, tuned_hp, orig_tq, tuned_tq) * 1.2
 
-    msg_text = (
-        f"📩 New LoS Config Request\n"
-        f"Brand: {brand}\n"
-        f"Model: {model}\n"
-        f"Generation: {generation}\n"
-        f"Engine: {engine}\n"
-        f"Stage: {stage}\n"
-        f"Options: {opts}\n"
-        f"Name: {name}\n"
-        f"Email: {email}\n"
-        f"VIN: {vin}\n"
-        f"Message: {message}"
-    )
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 4))
+    ax1.bar(["Stock", "LoS"], [orig_hp, tuned_hp]); ax1.set_ylim(0, y_max); ax1.set_title("HP")
+    for i, v in enumerate([orig_hp, tuned_hp]):
+        ax1.text(i, v * 1.02, f"{v} hp", ha="center")
+    ax2.bar(["Stock", "LoS"], [orig_tq, tuned_tq]); ax2.set_ylim(0, y_max); ax2.set_title("Torque")
+    for i, v in enumerate([orig_tq, tuned_tq]):
+        ax2.text(i, v * 1.02, f"{v} Nm", ha="center")
+    plt.tight_layout(); st.pyplot(fig); plt.close(fig)
+except Exception as e:
+    st.exception(e)
 
-    # Telegram notification
-    try:
-        bot = st.secrets['telegram']['token']
-        chat = st.secrets['telegram']['chat_id']
-        requests.post(f"https://api.telegram.org/bot{bot}/sendMessage", data={"chat_id": chat, "text": msg_text})
-        if uploaded_file:
-            requests.post(f"https://api.telegram.org/bot{bot}/sendDocument", data={"chat_id": chat}, files={"document": (uploaded_file.name, uploaded_file.getvalue())})
-    except Exception as e:
-        st.warning(f"Telegram error: {e}")
+# ---------- Contact form ----------
+st.header(_t["form_title"])
+with st.form("contact_form"):
+    name = st.text_input(_t["name"])
+    email = st.text_input(_t["email"])
+    vin = st.text_input(_t["vin"])
+    message = st.text_area(_t["message"], height=120)
+    send_copy = st.checkbox(_t["send_copy"])
+    attach_pdf = st.checkbox(_t["attach_pdf"])
+    uploaded_file = st.file_uploader(_t["upload_file"], type=["txt", "pdf", "jpg", "png"])
+    submit = st.form_submit_button(_t["submit"])
 
-    # Send copy to client via email
-    if send_copy:
-        try:
-            from email.message import EmailMessage
-            import smtplib
-            smtp_conf = st.secrets['smtp']
-            email_msg = EmailMessage()
-            email_msg['Subject'] = 'Your LoS Configurator Copy'
-            email_msg['From'] = smtp_conf['sender_email']
-            email_msg['To'] = email
-            email_msg.set_content(msg_text)
-            if attach_pdf:
-                buf = io.BytesIO()
-                fig.savefig(buf, format='PNG')
-                buf.seek(0)
-                tmp = tempfile.NamedTemporaryFile(delete=False, suffix='.png')
-                tmp.write(buf.getvalue()); tmp.close()
-                pdf = FPDF(); pdf.add_page(); pdf.image(tmp.name, x=10, y=10, w=190); os.remove(tmp.name)
-                pdf_bytes = pdf.output(dest='S').encode('latin-1')
-                email_msg.add_attachment(pdf_bytes, maintype='application', subtype='pdf', filename='LoS_Report.pdf')
-            with smtplib.SMTP_SSL(smtp_conf['server'], smtp_conf['port']) as server:
-                server.login(smtp_conf['username'], smtp_conf['password'])
-                server.send_message(email_msg)
-        except Exception as ee:
-            st.warning(f"Email error: {ee}")
+# ---------- Form handling ----------
+if not submit:
+    st.stop()
 
-    # Offer PDF download
-    if attach_pdf:
-        buf = io.BytesIO()
-        fig.savefig(buf, format='PNG')
-        buf.seek(0)
-        tmp = tempfile.NamedTemporaryFile(delete=False, suffix='.png')
-        tmp.write(buf.getvalue()); tmp.close()
-        pdf = FPDF(); pdf.add_page(); pdf.image(tmp.name, x=10, y=10, w=190); os.remove(tmp.name)
-        pdf_bytes = pdf.output(dest='S').encode('latin-1')
-        st.download_button(t['attach_pdf'], data=pdf_bytes, file_name="LoS_Report.pdf", mime="application/pdf")
+if not name:
+    st.error(_t["error_name"]); st.stop()
+if not email or "@" not in email:
+    st.error(_t["error_email"]); st.stop()
+if stage == _t["stage_full"] and not opts_selected:
+    st.error(_t["error_select_options"]); st.stop()
 
-    st.success(t['success_message'])
+st.success(_t["success"])
