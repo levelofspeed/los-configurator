@@ -1,7 +1,6 @@
 import streamlit as st
 import matplotlib.pyplot as plt
-import os, json, io, tempfile, requests
-from fpdf import FPDF
+import os, json
 from collections import UserDict
 
 # ---------- Page config ----------
@@ -25,6 +24,7 @@ translations = {
         "form_title": "Contact Us",
         "name": "Name",
         "email": "Email",
+        "vin": "VIN",
         "message": "Message",
         "send_copy": "Send me a copy",
         "attach_pdf": "Attach PDF",
@@ -49,6 +49,7 @@ translations = {
         "form_title": "Свяжитесь с нами",
         "name": "Имя",
         "email": "Email",
+        "vin": "VIN",
         "message": "Сообщение",
         "send_copy": "Прислать копию",
         "attach_pdf": "Приложить PDF",
@@ -73,6 +74,7 @@ translations = {
         "form_title": "Kontakt",
         "name": "Name",
         "email": "E-Mail",
+        "vin": "VIN",
         "message": "Nachricht",
         "send_copy": "Kopie an mich senden",
         "attach_pdf": "PDF anhängen",
@@ -203,5 +205,4 @@ st.write("")
 # ---------- Contact form ----------
 st.header(_t["form_title"])
 with st.form("contact_form"):
-    name = st.text_input(_t["name"])
-    email
+    name = st.text_input(_t[
