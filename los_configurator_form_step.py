@@ -209,7 +209,6 @@ if submitted:
     if not name: st.error(t['error_name']); st.stop()
     if not email or '@' not in email: st.error(t['error_email']); st.stop()
     if stage == t['stage_full'] and not selected_options: st.error(t['error_select_options']); st.stop()
-    opts = ', '.join(selected_options) if selected_options else 'N/A'
         opts = ', '.join(selected_options) if selected_options else 'N/A'
     msg_text = (
         f"📩 New LoS Config Request
@@ -234,14 +233,7 @@ if submitted:
 "
         f"Message: {message}"
     )
-    # Telegram
-    try:
-        bot, chat = st.secrets['telegram']['token'], st.secrets['telegram']['chat_id']
-        requests.post(f"https://api.telegram.org/bot{bot}/sendMessage", data={"chat_id": chat, "text": msg_text})
-        if uploaded_file:
-            requests.post(f"https://api.telegram.org/bot{bot}/sendDocument", data={"chat_id": chat}, files={"document": (uploaded_file.name, uploaded_file.getvalue())})
-    except Exception as e:
-        st.warning(f"Telegram error: {e}")
+    # Telegram(f"Telegram error: {e}")
     # Email
     if send_copy:
         try:
