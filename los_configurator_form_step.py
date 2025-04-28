@@ -155,9 +155,11 @@ try:
     st.markdown("---")
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 4))
     ax1.bar(["Stock", "LoS"], [orig_hp, tuned_hp]); ax1.set_ylim(0, y_max); ax1.set_title("HP")
-    for i, v in enumerate([orig_hp, tuned_hp]): ax1.text(i, v * 1.02, f"{v} hp", ha="center")
+    for i, v in enumerate([orig_hp, tuned_hp]):
+        ax1.text(i, v * 1.02, f"{v} hp", ha="center")
     ax2.bar(["Stock", "LoS"], [orig_tq, tuned_tq]); ax2.set_ylim(0, y_max); ax2.set_title("Torque")
-    for i, v in enumerate([orig_tq, tuned_tq]): ax2.text(i, v * 1.02, f"{v} Nm", ha="center")
+    for i, v in enumerate([orig_tq, tuned_tq]):
+        ax2.text(i, v * 1.02, f"{v} Nm", ha="center")
     plt.tight_layout(); st.pyplot(fig); plt.close(fig)
 except Exception as e:
     st.exception(e)
@@ -176,4 +178,20 @@ with st.form("contact_form"):
     email = st.text_input(_t["email"])
     vin = st.text_input(_t["vin"])
     message = st.text_area(_t["message"], height=120)
-    send_copy = st.checkbox(_t[
+    send_copy = st.checkbox(_t["send_copy"])
+    attach_pdf = st.checkbox(_t["attach_pdf"])
+    uploaded_file = st.file_uploader(_t["upload_file"], type=["txt", "pdf", "jpg", "png"])
+    submit = st.form_submit_button(_t["submit"])
+
+# ---------- Form handling ----------
+if not submit:
+    st.stop()
+
+if not name:
+    st.error(_t["error_name"]); st.stop()
+if not email or "@" not in email:
+    st.error(_t["error_email"]); st.stop()
+if stage == _t["stage_full"] and not opts_selected:
+    st.error(_t["error_select_options"]); st.stop()
+
+st.success(_t["success"])
