@@ -79,4 +79,31 @@ if stage != t['stage_power']:
 # Charts and form temporarily disabled for debugging
 st.write("DEBUG: Stage=", stage)
 st.write("DEBUG: Options selected=", opts)
+
+# Re-enable charts for testing only
+rec = engines[engine]
+orig_hp, tuned_hp = rec['Original HP'], rec['Tuned HP']
+orig_tq, tuned_tq = rec['Original Torque'], rec['Tuned Torque']
+ymax = max(orig_hp, tuned_hp, orig_tq, tuned_tq) * 1.2
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 5))
+# HP chart
+ax1.bar(['Stock', 'LoS'], [orig_hp, tuned_hp], color=['#A0A0A0', '#FF0000'])
+ax1.set_ylim(0, ymax)
+for i, v in enumerate([orig_hp, tuned_hp]):
+    ax1.text(i, v * 1.02, f"{v} hp", ha='center')
+ax1.text(0.5, -0.15, t['difference_hp'].format(hp=tuned_hp - orig_hp), transform=ax1.transAxes, ha='center')
+ax1.set_ylabel(t['original_hp'])
+
+# Torque chart
+ax2.bar(['Stock', 'LoS'], [orig_tq, tuned_tq], color=['#A0A0A0', '#FF0000'])
+ax2.set_ylim(0, ymax)
+for i, v in enumerate([orig_tq, tuned_tq]):
+    ax2.text(i, v * 1.02, f"{v} Nm", ha='center')
+ax2.text(0.5, -0.15, t['difference_torque'].format(torque=tuned_tq - orig_tq), transform=ax2.transAxes, ha='center')
+ax2.set_ylabel(t['original_torque'])
+
+plt.tight_layout()
+st.pyplot(fig)
+
+# STOP before form for debugging
 st.stop()
