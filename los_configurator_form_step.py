@@ -1,228 +1,185 @@
 import streamlit as st
-import matplotlib.pyplot as plt
 import json
-import os
-import traceback
-from datetime import datetime
+from pathlib import Path
 
-# 1. Настройка состояния приложения ============================================
-if 'app' not in st.session_state:
-    st.session_state.app = {
-        'stage': 1,  # 1=выбор авто, 2=тюнинг, 3=результаты
-        'vehicle': None,
-        'tuning': None,
-        'last_error': None
-    }
+# 1. Настройка путей
+BASE_DIR = Path(__file__).parent
+DATA_FILE = BASE_DIR / "data" / "full_database.json"
+LOGO_FILE = BASE_DIR / "static" / "logo_white.png"
 
-# 2. Загрузка данных с защитой ================================================
+# 2. Улучшенная загрузка данных с защитой
 @st.cache_data
-def load_database():
+def load_data():
     try:
-        with open('data/full_database.json', 'r', encoding='utf-8') as f:
-            return json.load(f)
-    except Exception as e:
-        st.session_state.app['last_error'] = {
-            'time': datetime.now().strftime("%H:%M:%S"),
-            'error': str(e),
-            'trace': traceback.format_exc()
-        }
-        return None
-
-database = load_database()
-
-# 3. Визуализация ошибок ======================================================
-def show_errors():
-    if st.session_state.app['last_error']:
-        err = st.session_state.app['last_error']
-        with st.expander("❌ Ошибка (нажмите для деталей)", expanded=False):
-            st.error(f"**Время:** {err['time']}")
-            st.code(f"Ошибка: {err['error']}\n\n{err['trace']}")
-        if st.button("🔄 Попробовать снова"):
-            st.session_state.app['last_error'] = None
-            st.rerun()
-
-# 4. Шаг 1: Выбор автомобиля ==================================================
-def render_vehicle_selection():
-    st.header("🔧 Выбор автомобиля")
-    
-    try:
-        # Защита от отсутствия данных
-        if not database:
-            st.error("База данных не загружена")
-            return
-
-        cols = st.columns(3)
-        
-        # Выбор марки
-        with cols[0]:
-            brands = sorted(database.keys())
-            brand = st.selectbox("Марка", [''] + brands, key='brand')
-        
-        # Выбор модели
-        with cols[1]:
-            models = []
-            if brand:
-                models = sorted(database[brand].keys())
-            model = st.selectbox("Модель", [''] + models, key='model')
-        
-        # Выбор поколения
-        with cols[2]:
-            generations = []
-            if brand and model:
-                generations = sorted(database[brand][model].keys())
-            generation = st.selectbox("Поколение", [''] + generations, key='generation')
-        
-        # Дополнительные параметры
-        if brand and model and generation:
-            engines_data = database[brand][model][generation]
+        with open(DATA_FILE, "r", encoding="utf-8") as f:
+            data = json.load(f)
             
-            # Выбор топлива
-            fuels = sorted({e.get('Type') for e in engines_data.values() 
-                          if isinstance(e, dict)})
-            fuel = st.selectbox("Топливо", [''] + fuels, key='fuel')
+            # Фильтрация пустых значений
+            filtered = {}
+            for brand, models in data.items():
+                if not models: continue
+                filtered[brand] = {}
+                for model, gens in models.items():
+                    if not gens: continue
+                    filtered[brand][model] = {}
+                    for gen, engines in gens.items():
+                        if not engines: continue
+                        filtered[brand][model][gen] = {
+                            engine: specs for engine, specs in engines.items() 
+                            if specs and isinstance(specs, dict)
+                        }
+            return filtered
+    except Exception as e:
+        st.error(f"Ошибка загрузки данных: {str(e)}")
+        return {}
+
+# 3. Главное приложение с полной защитой
+def main():
+    st.set_page_config(page_title="Level of Speed Configurator", layout="wide")
+    
+    # Логотип (с защитой)
+    try:
+        if LOGO_FILE.exists():
+            st.image(str(LOGO_FILE), use_column_width=True)
+    except Exception as e:
+        st.warning(f"Не удалось загрузить логотип: {str(e)}")
+
+    # Загрузка данных
+    db = load_data()
+    if not db:
+        st.error("Нет данных для отображения. Проверьте файл базы данных.")
+        st.stop()
+
+    # Инициализация состояния
+    if "stage" not in st.session_state:
+        st.session_state.update({
+            "stage": 1,
+            "vehicle": None,
+            "tuning": None
+        })
+
+    # Шаг 1: Выбор авто (с полной защитой)
+    if st.session_state.stage == 1:
+        st.header("🔧 Выбор автомобиля")
+        
+        try:
+            # Выбор марки
+            brands = sorted(db.keys())
+            if not brands:
+                st.error("Нет доступных марок")
+                st.stop()
+            
+            brand = st.selectbox("Марка", brands, index=0)
+            
+            # Выбор модели
+            models = sorted(db[brand].keys()) if brand else []
+            if not models:
+                st.error("Нет доступных моделей для выбранной марки")
+                st.stop()
+            
+            model = st.selectbox("Модель", models, index=0)
+            
+            # Выбор поколения
+            gens = sorted(db[brand][model].keys()) if model else []
+            if not gens:
+                st.error("Нет доступных поколений для выбранной модели")
+                st.stop()
+            
+            gen = st.selectbox("Поколение", gens, index=0)
             
             # Выбор двигателя
-            if fuel:
-                engines = [k for k, v in engines_data.items() 
-                         if isinstance(v, dict) and v.get('Type') == fuel]
-                engine = st.selectbox("Двигатель", [''] + engines, key='engine')
+            engines = sorted(db[brand][model][gen].keys()) if gen else []
+            if not engines:
+                st.error("Нет доступных двигателей для выбранного поколения")
+                st.stop()
+            
+            engine = st.selectbox("Двигатель", engines, index=0)
+            
+            if engine and st.button("Далее →"):
+                st.session_state.vehicle = {
+                    "brand": brand,
+                    "model": model,
+                    "generation": gen,
+                    "engine": engine,
+                    "specs": db[brand][model][gen][engine]
+                }
+                st.session_state.stage = 2
+                st.rerun()
                 
-                # Сохранение выбора
-                if engine:
-                    st.session_state.app['vehicle'] = {
-                        'brand': brand,
-                        'model': model,
-                        'generation': generation,
-                        'fuel': fuel,
-                        'engine': engine,
-                        'specs': engines_data[engine]
-                    }
-        
-        # Кнопка продолжения
-        if st.session_state.app['vehicle']:
-            if st.button("Далее →", key='to_step_2'):
-                st.session_state.app['stage'] = 2
-                st.rerun()
+        except Exception as e:
+            st.error(f"Ошибка при выборе автомобиля: {str(e)}")
+            st.stop()
 
-    except Exception as e:
-        st.session_state.app['last_error'] = {
-            'time': datetime.now().strftime("%H:%M:%S"),
-            'error': str(e),
-            'trace': traceback.format_exc()
-        }
-        st.rerun()
-
-# 5. Шаг 2: Настройка тюнинга =================================================
-def render_tuning_config():
-    st.header("⚡ Настройка тюнинга")
-    
-    try:
-        vehicle = st.session_state.app['vehicle']
-        st.success(f"Выбран: {vehicle['brand']} {vehicle['model']} ({vehicle['engine']})")
-        
-        # Выбор типа тюнинга
-        tuning_type = st.radio(
-            "Тип тюнинга",
-            ["Только мощность", "Только опции", "Полный пакет"],
-            index=0,
-            key='tuning_type'
-        )
-        
-        # Выбор опций
-        selected_options = []
-        if "опции" in tuning_type.lower():
-            options = vehicle['specs'].get('Options', [])
-            selected_options = st.multiselect(
-                "Доступные опции",
-                options,
-                key='tuning_options'
+    # Шаг 2: Настройка тюнинга
+    elif st.session_state.stage == 2:
+        try:
+            v = st.session_state.vehicle
+            st.header(f"⚡ {v['brand']} {v['model']} ({v['engine']})")
+            
+            # Выбор типа тюнинга
+            tuning_type = st.radio(
+                "Тип тюнинга",
+                ["Только мощность", "Только опции", "Полный пакет"],
+                index=0
             )
-        
-        # Сохранение выбора
-        st.session_state.app['tuning'] = {
-            'type': tuning_type,
-            'options': selected_options
-        }
-        
-        # Управление навигацией
-        col1, col2 = st.columns(2)
-        with col1:
-            if st.button("← Назад", key='back_to_step_1'):
-                st.session_state.app['stage'] = 1
+            
+            # Выбор опций (если нужно)
+            options = []
+            if "опции" in tuning_type.lower():
+                available_options = v["specs"].get("Options", [])
+                if available_options:
+                    options = st.multiselect("Доступные опции", available_options)
+                else:
+                    st.warning("Для этого двигателя нет доступных опций")
+            
+            # Навигация
+            col1, col2 = st.columns(2)
+            with col1:
+                if st.button("← Назад"):
+                    st.session_state.stage = 1
+                    st.rerun()
+            with col2:
+                if st.button("Далее →"):
+                    st.session_state.tuning = {
+                        "type": tuning_type,
+                        "options": options
+                    }
+                    st.session_state.stage = 3
+                    st.rerun()
+                    
+        except Exception as e:
+            st.error(f"Ошибка при настройке тюнинга: {str(e)}")
+            st.stop()
+
+    # Шаг 3: Результаты
+    elif st.session_state.stage == 3:
+        try:
+            v = st.session_state.vehicle
+            t = st.session_state.tuning
+            
+            st.header("📊 Результаты конфигурации")
+            st.subheader(f"{v['brand']} {v['model']} {v['generation']}")
+            st.write(f"**Двигатель:** {v['engine']}")
+            st.write(f"**Тип тюнинга:** {t['type']}")
+            
+            if t["options"]:
+                st.write("**Выбранные опции:**")
+                for opt in t["options"]:
+                    st.write(f"- {opt}")
+            else:
+                st.write("**Выбранные опции:** Нет")
+            
+            st.divider()
+            st.write(f"**Мощность:** {v['specs']['Original HP']} → {v['specs']['Tuned HP']} л.с.")
+            st.write(f"**Крутящий момент:** {v['specs']['Original Torque']} → {v['specs']['Tuned Torque']} Нм")
+            
+            if st.button("🔄 Начать заново", type="primary"):
+                st.session_state.clear()
                 st.rerun()
-        with col2:
-            if st.button("Далее →", key='to_step_3'):
-                st.session_state.app['stage'] = 3
-                st.rerun()
-
-    except Exception as e:
-        st.session_state.app['last_error'] = {
-            'time': datetime.now().strftime("%H:%M:%S"),
-            'error': str(e),
-            'trace': traceback.format_exc()
-        }
-        st.rerun()
-
-# 6. Шаг 3: Результаты ========================================================
-def render_results():
-    st.header("📊 Результаты")
-    
-    try:
-        vehicle = st.session_state.app['vehicle']
-        tuning = st.session_state.app['tuning']
-        
-        # Отображение графиков
-        fig, ax = plt.subplots(figsize=(10, 5))
-        specs = vehicle['specs']
-        
-        ax.bar(
-            ['Сток', 'Тюнинг'],
-            [specs['Original HP'], specs['Tuned HP']],
-            color=['gray', 'red']
-        )
-        ax.set_ylabel('Мощность (л.с.)')
-        st.pyplot(fig)
-        plt.close(fig)
-        
-        # Информация о выборе
-        st.write(f"**Тип тюнинга:** {tuning['type']}")
-        if tuning['options']:
-            st.write("**Выбранные опции:**")
-            for opt in tuning['options']:
-                st.write(f"- {opt}")
-        
-        # Кнопка сброса
-        if st.button("🔄 Начать заново", key='restart'):
-            st.session_state.app = {
-                'stage': 1,
-                'vehicle': None,
-                'tuning': None,
-                'last_error': None
-            }
-            st.rerun()
-
-    except Exception as e:
-        st.session_state.app['last_error'] = {
-            'time': datetime.now().strftime("%H:%M:%S"),
-            'error': str(e),
-            'trace': traceback.format_exc()
-        }
-        st.rerun()
-
-# 7. Главный контроллер ========================================================
-def main():
-    show_errors()
-    
-    if not database:
-        st.error("Не удалось загрузить базу данных")
-        return
-    
-    if st.session_state.app['stage'] == 1:
-        render_vehicle_selection()
-    elif st.session_state.app['stage'] == 2:
-        render_tuning_config()
-    elif st.session_state.app['stage'] == 3:
-        render_results()
+                
+        except Exception as e:
+            st.error(f"Ошибка при отображении результатов: {str(e)}")
+            st.stop()
 
 if __name__ == "__main__":
     main()
