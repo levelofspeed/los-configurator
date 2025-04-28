@@ -166,7 +166,10 @@ stage = st.selectbox(
     t['select_stage'], [t['stage_power'], t['stage_options_only'], t['stage_full']], key='stage'
 )
 opts_selected = []
+opts_selected = []
 if stage != t['stage_power']:
+    st.markdown('----')
+    opts_selected = st.multiselect(t['options'], engines_data[engine]['Options'], key='options')(t['options'], engines_data[engine]['Options'], key='sel_options')
     st.markdown('----')
     opts_selected = st.multiselect(t['options'], engines_data[engine]['Options'], key='options')
 
