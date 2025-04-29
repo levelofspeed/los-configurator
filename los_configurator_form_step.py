@@ -112,4 +112,64 @@ Email: {email_addr}
 VIN: {vin}
 Message: {message}
 """)
+    try:
+        requests.post(
+            f"https://api.telegram.org/bot{TOKEN}/sendMessage",
+            data={"chat_id": CHAT_ID, "text": tg_text}, timeout=10
+        )
+        if uploaded_file is not None:
+            uploaded_file.seek(0)
+            requests.post(
+                f"https://api.telegram.org/bot{TOKEN}/sendDocument",
+                data={"chat_id": CHAT_ID},
+                files={"document": (uploaded_file.name, uploaded_file.read(), uploaded_file.type or "application/octet-stream")},
+                timeout=20,
+            )
+    except Exception as err:
+        st.warning(f"Telegram error: {err}")
 
+# ---------- Email copy to client ----------
+if send_copy:
+    host, user, pwd = os.getenv("SMTP_HOST"), os.getenv("SMTP_USER"), os.getenv("SMTP_PASS")
+    port = int(os.getenv("SMTP_PORT", "587"))
+    if all([host, user, pwd]):
+        body = textwrap.dedent(
+            f"""Hello {name},
+
+Thank you for your request. Summary:
+
+"
+            f"Brand / Model / Gen: {brand} / {model} / {gen}
+"
+            f"Fuel: {fuel}
+Engine: {engine}
+Stage: {stage}
+"
+            f"Options: {', '.join(opts_selected) if opts_selected else '-'}
+VIN: {vin}
+
+"
+            f"Message: {message}
+
+Best regards, Level of Speed team"""
+        )
+        msg = email.message.EmailMessage()
+        msg["Subject"] = "Level of Speed Configurator – Your Request"
+        msg["From"] = user
+        msg["To"] = email_addr
+        msg.set_content(body)
+        if attach_pdf:
+            pdf = FPDF(); pdf.add_page(); pdf.set_font("Arial", size=12)
+            for ln in body.split("
+"):
+                pdf.multi_cell(0, 10, ln)
+            msg.add_attachment(pdf.output(dest="S").encode("latin-1"), maintype="application", subtype="pdf", filename="LoS_report.pdf")
+        try:
+            with smtplib.SMTP(host, port) as s:
+                s.starttls(); s.login(user, pwd); s.send_message(msg)
+        except Exception as smtp_err:
+            st.warning(f"Email error: {smtp_err}")
+    else:
+        st.info("Send-copy checked, but SMTP credentials are missing.")
+
+st.success(_t["success"])
