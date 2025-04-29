@@ -133,40 +133,50 @@ if send_copy:
     host, user, pwd = os.getenv("SMTP_HOST"), os.getenv("SMTP_USER"), os.getenv("SMTP_PASS")
     port = int(os.getenv("SMTP_PORT", "587"))
     if all([host, user, pwd]):
-        body = textwrap.dedent(
-            f"""Hello {name},
+        body = textwrap.dedent(f"""\
+Hello {name},
 
 Thank you for your request. Summary:
 
-"
-            f"Brand / Model / Gen: {brand} / {model} / {gen}
-"
-            f"Fuel: {fuel}
+Brand / Model / Gen: {brand} / {model} / {gen}
+Fuel: {fuel}
 Engine: {engine}
 Stage: {stage}
-"
-            f"Options: {', '.join(opts_selected) if opts_selected else '-'}
+Options: {', '.join(opts_selected) if opts_selected else '-'}
 VIN: {vin}
 
-"
-            f"Message: {message}
+Message:
+{message}
 
-Best regards, Level of Speed team"""
-        )
+Best regards,
+Level of Speed team
+""")
+
         msg = email.message.EmailMessage()
         msg["Subject"] = "Level of Speed Configurator – Your Request"
         msg["From"] = user
         msg["To"] = email_addr
         msg.set_content(body)
+
+        # attach PDF report only (not the client's file)
         if attach_pdf:
-            pdf = FPDF(); pdf.add_page(); pdf.set_font("Arial", size=12)
-            for ln in body.split("
-"):
+            pdf = FPDF()
+            pdf.add_page()
+            pdf.set_font("Arial", size=12)
+            for ln in body.split("\\n"):
                 pdf.multi_cell(0, 10, ln)
-            msg.add_attachment(pdf.output(dest="S").encode("latin-1"), maintype="application", subtype="pdf", filename="LoS_report.pdf")
+            msg.add_attachment(
+                pdf.output(dest="S").encode("latin-1"),
+                maintype="application",
+                subtype="pdf",
+                filename="LoS_report.pdf",
+            )
+
         try:
             with smtplib.SMTP(host, port) as s:
-                s.starttls(); s.login(user, pwd); s.send_message(msg)
+                s.starttls()
+                s.login(user, pwd)
+                s.send_message(msg)
         except Exception as smtp_err:
             st.warning(f"Email error: {smtp_err}")
     else:
