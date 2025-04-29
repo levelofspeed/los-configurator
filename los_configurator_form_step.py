@@ -93,10 +93,33 @@ if "@" not in email: st.error(_t["error_email"]); st.stop()
 if stage==_t["stage_full"] and not opts_selected: st.error(_t["error_select_options"]); st.stop()
 
 # ---------- Telegram send ----------
-TOKEN,CHAT_ID=os.getenv("TG_BOT_TOKEN"),os.getenv("TG_CHAT_ID")
+TOKEN, CHAT_ID = os.getenv("TG_BOT_TOKEN"), os.getenv("TG_CHAT_ID")
 if TOKEN and CHAT_ID:
-    text=f"""🏎 Level of Speed\nBrand: {brand}/{model}/{gen}\nFuel:{fuel} Engine:{engine}\nStage:{stage}\nOptions:{', '.join(opts_selected) or '-'}\n\nName:{name}  Email:{email}\nVIN:{vin}\nMsg:{message}"""
+    tg_text = (
+        f"🏎 Level of Speed\n"
+        f"Brand: {brand}/{model}/{gen}\n"
+        f"Fuel: {fuel}   Engine: {engine}\n"
+        f"Stage: {stage}\n"
+        f"Options: {', '.join(opts_selected) or '-'}\n\n"
+        f"Name: {name}\nEmail: {email}\nVIN: {vin}\nMessage: {message}"
+    )
     try:
-        requests.post(f"https://api.telegram.org/bot{TOKEN}/sendMessage",data={"chat_id":CHAT_ID,"text":text})
-        if uploaded_file:
-            requests.post(f"https://api.telegram.org/bot{
+        requests.post(
+            f"https://api.telegram.org/bot{TOKEN}/sendMessage",
+            data={"chat_id": CHAT_ID, "text": tg_text},
+        )
+        if uploaded_file is not None:
+            files = {
+                "document": (
+                    uploaded_file.name,
+                    uploaded_file.read(),
+                    uploaded_file.type or "application/octet-stream",
+                )
+            }
+            requests.post(
+                f"https://api.telegram.org/bot{TOKEN}/sendDocument",
+                data={"chat_id": CHAT_ID},
+                files=files,
+            )
+    except Exception as err:
+        st.warning(f"Telegram error: {err}")
