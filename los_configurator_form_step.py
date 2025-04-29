@@ -91,8 +91,4 @@ try:
     for i, v in enumerate([ot, tt]):
         ax2.text(i, v * 1.02, f"{v} Nm", ha="center", color="white")
     ax1.text(0.5, -0.15, f"{_t['difference']} +{th - oh} hp", ha="center", color="white", transform=ax1.transAxes)
-    ax2.text(0.5, -0.15, f"{_t['difference']} +{tt - ot} Nm", ha="center", color="white", transform=ax2.transAxes)
-    plt.tight_layout()
-    st.pyplot(fig)
-    buf = io.BytesIO(); fig.savefig(buf, format="png", dpi=150); buf.seek(0)
-    chart_bytes = buf.getvalue(); plt.close(fig)
+    ax2.text(0.5, -0.15, f"{_t['difference']} +{tt - ot} Nm", ha="center", color
