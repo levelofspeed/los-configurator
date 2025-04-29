@@ -96,25 +96,21 @@ if stage==_t["stage_full"] and not opts_selected: st.error(_t["error_select_opti
 TOKEN = os.getenv("TG_BOT_TOKEN")
 CHAT_ID = os.getenv("TG_CHAT_ID")
 if TOKEN and CHAT_ID:
-    tg_text = (
-        f"🏎 Level of Speed
-"
-        f"Brand: {brand}/{model}/{gen}
-"
-        f"Fuel: {fuel}   Engine: {engine}
-"
-        f"Stage: {stage}
-"
-        f"Options: {', '.join(opts_selected) or '-'}
+    tg_text = textwrap.dedent(
+        f"""
+        🏎 Level of Speed
+        Brand / Model / Gen: {brand} / {model} / {gen}
+        Fuel: {fuel}   Engine: {engine}
+        Stage: {stage}
+        Options: {', '.join(opts_selected) or '-'}
 
-"
-        f"Name: {name}
-Email: {email}
-VIN: {vin}
-Msg: {message}"
+        Name: {name}
+        Email: {email}
+        VIN: {vin}
+        Message: {message}
+        """
     )
     try:
-        # send text
         requests.post(
             f"https://api.telegram.org/bot{TOKEN}/sendMessage",
             data={"chat_id": CHAT_ID, "text": tg_text}, timeout=10
@@ -143,24 +139,22 @@ if send_copy:
     port = int(os.getenv("SMTP_PORT", "587"))
     if all([host, user, pwd]):
         body = textwrap.dedent(
-            f"""Hello {name},
+            f"""
+            Hello {name},
 
-Thank you for your request. Summary:
+            Thank you for your request. Summary:
+            Brand / Model / Gen: {brand} / {model} / {gen}
+            Fuel: {fuel}
+            Engine: {engine}
+            Stage: {stage}
+            Options: {', '.join(opts_selected) if opts_selected else '-'}
+            VIN: {vin}
 
-"
-            f"Brand / Model / Gen: {brand} / {model} / {gen}
-"
-            f"Fuel: {fuel}
-Engine: {engine}
-Stage: {stage}
-"
-            f"Options: {', '.join(opts_selected) if opts_selected else '-'}
-VIN: {vin}
+            Message: {message}
 
-"
-            f"Message: {message}
-
-Best regards, Level of Speed team"""
+            Best regards,
+            Level of Speed team
+            """
         )
         msg = email.message.EmailMessage()
         msg["Subject"] = "Level of Speed Configurator – Your Request"
@@ -183,3 +177,4 @@ Best regards, Level of Speed team"""
         st.info("Send‑copy checked, but SMTP credentials are not configured.")
 
 st.success(_t["success"])
+(_t["success"])
