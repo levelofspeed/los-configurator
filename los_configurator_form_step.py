@@ -118,61 +118,53 @@ Message: {message}
             data={"chat_id": CHAT_ID, "text": tg_text}, timeout=10
         )
         if uploaded_file is not None:
-    file_bytes = uploaded_file.read()
-    requests.post(
-        f"https://api.telegram.org/bot{TOKEN}/sendDocument",
-        data={"chat_id": CHAT_ID},
-        files={"document": (uploaded_file.name, file_bytes,
-                            uploaded_file.type or "application/octet-stream")},
-        timeout=20,
-    )
-
+            uploaded_file.seek(0)
+            requests.post(
+                f"https://api.telegram.org/bot{TOKEN}/sendDocument",
+                data={"chat_id": CHAT_ID},
+                files={"document": (uploaded_file.name, uploaded_file.read(), uploaded_file.type or "application/octet-stream")},
+                timeout=20,
+            )
     except Exception as err:
         st.warning(f"Telegram error: {err}")
 
 # ---------- Email copy to client ----------
 if send_copy:
-    host, user, pwd = (
-        os.getenv("SMTP_HOST"),
-        os.getenv("SMTP_USER"),
-        os.getenv("SMTP_PASS"),
-    )
+    host, user, pwd = os.getenv("SMTP_HOST"), os.getenv("SMTP_USER"), os.getenv("SMTP_PASS")
     port = int(os.getenv("SMTP_PORT", "587"))
-
     if all([host, user, pwd]):
         body = textwrap.dedent(
             f"""\
-            Hello {name},
+Hello {name},
 
-            Thank you for your request. Summary:
+Thank you for your request. Summary:
 
-            Brand / Model / Gen: {brand} / {model} / {gen}
-            Fuel: {fuel}
-            Engine: {engine}
-            Stage: {stage}
-            Options: {', '.join(opts_selected) if opts_selected else '-'}
-            VIN: {vin}
+Brand / Model / Gen: {brand} / {model} / {gen}
+Fuel: {fuel}
+Engine: {engine}
+Stage: {stage}
+Options: {', '.join(opts_selected) if opts_selected else '-'}
+VIN: {vin}
 
-            Message:
-            {message}
+Message:
+{message}
 
-            Best regards,
-            Level of Speed team
-            """
+Best regards,
+Level of Speed team
+"""
         )
-
         msg = email.message.EmailMessage()
         msg["Subject"] = "Level of Speed Configurator – Your Request"
         msg["From"] = user
         msg["To"] = email_addr
         msg.set_content(body)
 
-        # attach PDF report only (NOT the client's upload)
+        # Attach generated PDF summary if requested
         if attach_pdf:
             pdf = FPDF()
             pdf.add_page()
             pdf.set_font("Arial", size=12)
-            for ln in body.split("\\n"):
+            for ln in body.split("\n"):
                 pdf.multi_cell(0, 10, ln)
             msg.add_attachment(
                 pdf.output(dest="S").encode("latin-1"),
@@ -180,7 +172,6 @@ if send_copy:
                 subtype="pdf",
                 filename="LoS_report.pdf",
             )
-
         try:
             with smtplib.SMTP(host, port) as s:
                 s.starttls()
@@ -190,6 +181,5 @@ if send_copy:
             st.warning(f"Email error: {smtp_err}")
     else:
         st.info("Send-copy checked, but SMTP credentials are missing.")
-
 
 st.success(_t["success"])
