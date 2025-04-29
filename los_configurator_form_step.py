@@ -164,7 +164,8 @@ if send_copy:
         # attach PDF report only (not client's file)
         if attach_pdf:
             pdf = FPDF(); pdf.add_page(); pdf.set_font("Arial", size=12)
-            for ln in body.split("\n")::
+            for ln in body.split("
+"):
                 pdf.multi_cell(0, 10, ln)
             msg.add_attachment(pdf.output(dest="S").encode("latin-1"), maintype="application", subtype="pdf", filename="LoS_report.pdf")
         try:
