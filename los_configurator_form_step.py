@@ -194,3 +194,5 @@ Level of Speed team
         st.info("Send-copy checked, but SMTP credentials are missing.")
 
 st.success(_t["success"])
+# Prevent immediate re‑execution with stale file object
+st.stop()
