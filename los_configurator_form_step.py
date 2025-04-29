@@ -118,11 +118,22 @@ Message: {message}
             data={"chat_id": CHAT_ID, "text": tg_text}, timeout=10
         )
         if uploaded_file is not None:
-            uploaded_file.seek(0)
+            # Streamlit may close the file object on rerun; read bytes once
+            try:
+                file_bytes = uploaded_file.getvalue()
+            except Exception:
+                uploaded_file.seek(0)
+                file_bytes = uploaded_file.read()
             requests.post(
                 f"https://api.telegram.org/bot{TOKEN}/sendDocument",
                 data={"chat_id": CHAT_ID},
-                files={"document": (uploaded_file.name, uploaded_file.read(), uploaded_file.type or "application/octet-stream")},
+                files={
+                    "document": (
+                        uploaded_file.name,
+                        file_bytes,
+                        uploaded_file.type or "application/octet-stream",
+                    )
+                },
                 timeout=20,
             )
     except Exception as err:
