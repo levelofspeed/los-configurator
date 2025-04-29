@@ -46,23 +46,18 @@ clear = lambda *k: [st.session_state.pop(x, None) for x in k]
 
 # ---------- Selections ----------
 brand = st.selectbox(_t["select_brand"], [""] + sorted(db.keys()), key="brand", on_change=lambda: clear("model", "generation", "fuel", "engine", "stage", "options"))
-if not brand:
-    st.stop()
+if not brand: st.stop()
 model = st.selectbox(_t["select_model"], [""] + sorted(db[brand].keys()), key="model", on_change=lambda: clear("generation", "fuel", "engine", "stage", "options"))
-if not model:
-    st.stop()
+if not model: st.stop()
 gen = st.selectbox(_t["select_generation"], [""] + sorted(db[brand][model].keys()), key="generation", on_change=lambda: clear("fuel", "engine", "stage", "options"))
-if not gen:
-    st.stop()
+if not gen: st.stop()
 engines_data = db[brand][model][gen]
 fuels = sorted({d.get("Type") for d in engines_data.values() if isinstance(d, dict) and d})
 fuel = st.selectbox(_t["select_fuel"], [""] + fuels, key="fuel", on_change=lambda: clear("engine", "stage", "options"))
-if not fuel:
-    st.stop()
+if not fuel: st.stop()
 engines = [n for n, d in engines_data.items() if isinstance(d, dict) and d.get("Type") == fuel]
 engine = st.selectbox(_t["select_engine"], [""] + engines, key="engine", on_change=lambda: clear("stage", "options"))
-if not engine:
-    st.stop()
+if not engine: st.stop()
 stage = st.selectbox(_t["select_stage"], [_t["stage_power"], _t["stage_options_only"], _t["stage_full"]], key="stage", on_change=lambda: clear("options"))
 opts_selected = st.multiselect(_t["options"], engines_data[engine].get("Options", []), key="options") if stage in (_t["stage_full"], _t["stage_options_only"]) else []
 
@@ -76,29 +71,17 @@ try:
     ymax = max(oh, th, ot, tt) * 1.2
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 4), facecolor="black")
     for ax in (ax1, ax2):
-        ax.set_facecolor("black")
-        ax.tick_params(colors="white")
-        for s in ax.spines.values():
-            s.set_color("white")
+        ax.set_facecolor("black"); ax.tick_params(colors="white"); [s.set_color("white") for s in ax.spines.values()]
     ax1.bar(["Stock", "LoS"], [oh, th], color=["#808080", "#FF0000"])
     ax2.bar(["Stock", "LoS"], [ot, tt], color=["#808080", "#FF0000"])
-    ax1.set_ylim(0, ymax)
-    ax2.set_ylim(0, ymax)
-    ax1.set_title("HP", color="white")
-    ax2.set_title("Torque", color="white")
-    for i, v in enumerate([oh, th]):
-        ax1.text(i, v * 1.02, f"{v} hp", ha="center", color="white")
-    for i, v in enumerate([ot, tt]):
-        ax2.text(i, v * 1.02, f"{v} Nm", ha="center", color="white")
+    ax1.set_ylim(0, ymax); ax2.set_ylim(0, ymax)
+    ax1.set_title("HP", color="white"); ax2.set_title("Torque", color="white")
+    for i, v in enumerate([oh, th]): ax1.text(i, v * 1.02, f"{v} hp", ha="center", color="white")
+    for i, v in enumerate([ot, tt]): ax2.text(i, v * 1.02, f"{v} Nm", ha="center", color="white")
     ax1.text(0.5, -0.15, f"{_t['difference']} +{th - oh} hp", ha="center", color="white", transform=ax1.transAxes)
     ax2.text(0.5, -0.15, f"{_t['difference']} +{tt - ot} Nm", ha="center", color="white", transform=ax2.transAxes)
-    plt.tight_layout()
-    st.pyplot(fig)
-    buf = io.BytesIO()
-    fig.savefig(buf, format="png", dpi=150)
-    buf.seek(0)
-    chart_bytes = buf.getvalue()
-    plt.close(fig)
+    plt.tight_layout(); st.pyplot(fig)
+    buf = io.BytesIO(); fig.savefig(buf, format="png", dpi=150); buf.seek(0); chart_bytes = buf.getvalue(); plt.close(fig)
 except Exception as e:
     st.warning(f"Chart error: {e}")
 
@@ -106,103 +89,4 @@ except Exception as e:
 st.header(_t["form_title"])
 with st.form("contact_form"):
     name = st.text_input(_t["name"])
-    email_addr = st.text_input(_t["email"])
-    vin = st.text_input(_t["vin"])
-    message = st.text_area(_t["message"], height=120)
-    send_copy = st.checkbox(_t["send_copy"])
-    attach_pdf = st.checkbox(_t["attach_pdf"])
-    uploaded_file = st.file_uploader(_t["upload_file"], type=["txt","pdf","jpg","png","rar","zip"])
-    submit = st.form_submit_button(_t["submit"])
-
-if not submit:
-    st.stop()
-if not name:
-    st.error(_t["error_name"]); st.stop()
-if "@" not in email_addr:
-    st.error(_t["error_email"]); st.stop()
-if stage == _t["stage_full"] and not opts_selected:
-    st.error(_t["error_select_options"]); st.stop()
-
-# ---------- Telegram send ----------
-TOKEN = os.getenv("TG_BOT_TOKEN")
-CHAT_ID = os.getenv("TG_CHAT_ID")
-if TOKEN and CHAT_ID:
-    tg_text = textwrap.dedent(f"""\
-🏎 Level of Speed Configurator
-Brand: {brand}
-Model: {model}
-Generation: {gen}
-Engine: {engine}
-Stage: {stage}
-Options: {', '.join(opts_selected) or '-'}
-
-Name: {name}
-Email: {email_addr}
-VIN: {vin}
-Message: {message}
-""")
-    try:
-        requests.post(f"https://api.telegram.org/bot{TOKEN}/sendMessage", data={"chat_id": CHAT_ID, "text": tg_text}, timeout=10)
-        if uploaded_file is not None:
-            file_data = uploaded_file.read()
-            requests.post(
-                f"https://api.telegram.org/bot{TOKEN}/sendDocument",
-                data={"chat_id": CHAT_ID},
-                files={"document": (uploaded_file.name, file_data, uploaded_file.type or "application/octet-stream")},
-                timeout=20,
-            )
-    except Exception as err:
-        st.warning(f"Telegram error: {err}")
-
-# ---------- Email copy ----------
-if send_copy:
-    host, user, pwd = os.getenv("SMTP_HOST"), os.getenv("SMTP_USER"), os.getenv("SMTP_PASS")
-    port = int(os.getenv("SMTP_PORT", "587"))
-    if all([host, user, pwd]):
-        body = textwrap.dedent(f"""\
-Hello {name},
-
-Thank you for your request.
-
-Brand: {brand}
-Model: {model}
-Generation: {gen}
-Engine: {engine}
-Stage: {stage}
-Options: {', '.join(opts_selected) or '-'}
-VIN: {vin}
-
-Message:
-{message}
-
-Best regards, Level of Speed""")
-        msg = email.message.EmailMessage()
-        msg["Subject"] = "Level of Speed – Your Request"
-        msg["From"] = user
-        msg["To"] = email_addr
-        msg.set_content(body)
-        if attach_pdf and chart_bytes is not None:
-            pdf = FPDF()
-            pdf.add_page()
-            pdf.set_font("Arial", size=12)
-            for ln in body.split("
-"):
-                pdf.multi_cell(0, 10, ln)
-            # add chart image
-            img_path = "chart.png"
-            with open(img_path, "wb") as imgf:
-                imgf.write(chart_bytes)
-            pdf.image(img_path, x=10, y=pdf.get_y()+10, w=180)
-            os.remove(img_path)
-            pdf_bytes = pdf.output(dest="S").encode("latin-1")
-            msg.add_attachment(pdf_bytes, maintype="application", subtype="pdf", filename="LoS_report.pdf")
-        try:
-            with smtplib.SMTP(host, port) as s:
-                s.starttls(); s.login(user, pwd); s.send_message(msg)
-        except Exception as smtp_err:
-            st.warning(f"Email error: {smtp_err}")
-    else:
-        st.info("Send‑copy checked, but SMTP credentials missing.")
-
-st.success(_t["success"])
-st.stop()
+    email_addr = st.text_input(_
