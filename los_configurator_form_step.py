@@ -102,3 +102,14 @@ if stage==_t["stage_full"] and not opts_selected: st.error(_t["error_select_opti
 TOKEN, CHAT_ID = os.getenv("TG_BOT_TOKEN"), os.getenv("TG_CHAT_ID")
 if TOKEN and CHAT_ID:
     tg_text = textwrap.dedent(f"""\
+🏎 Level of Speed
+Brand / Model / Gen: {brand} / {model} / {gen}
+Fuel: {fuel}   Engine: {engine}
+Stage: {stage}
+Options: {', '.join(opts_selected) or '-'}
+Name: {name}
+Email: {email_addr}
+VIN: {vin}
+Message: {message}
+""")
+
