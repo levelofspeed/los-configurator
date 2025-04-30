@@ -56,9 +56,9 @@ _t = _T(translations.get(lang, translations["en"]))
 # ---------------- Logo ------------------------
 logo = next((p for p in ("logo.png", "logo_white.png") if os.path.exists(p)), None)
 if logo:
-    # Center and slightly increase logo size
-    _, c, _ = st.columns([1, 2, 1])  # narrow center column for logo
-    c.image(logo, width=120)
+    # Center and display logo larger to avoid cropping
+    _, c, _ = st.columns([1, 3, 1])  # wider middle column
+    c.image(logo, width=160)
 
 # ---------------- Page Title ----------------
 st.title("Level of Speed Configurator 🚘")
