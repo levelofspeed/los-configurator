@@ -140,7 +140,8 @@ def load_db():
         return json.load(f)
 def prune(node):
     if isinstance(node, dict):
-        return {k: prune(v) for k, v in node.items() if v not in (None, {}, [], "")}
+        return {k: prune(v) for k, v in node.items() if v not in (None, {}, [], "")}\
+
     return node
 db = prune(load_db())
 clear = lambda *keys: [st.session_state.pop(k, None) for k in keys]
@@ -161,112 +162,4 @@ fuel = st.selectbox(_t["select_fuel"], [""] + fuels, key="fuel", on_change=lambd
 if not fuel:
     st.stop()
 engines = [name for name, d in engines_data.items() if isinstance(d, dict) and d.get("Type") == fuel]
-engine = st.selectbox(_t["select_engine"], [""] + engines, key="engine", on_change=lambda: clear("stage", "options"))
-if not engine:
-    st.stop()
-stage = st.selectbox(_t["select_stage"], [_t["stage_power"], _t["stage_options_only"], _t["stage_full"]], key="stage")
-opts = st.multiselect(_t["options"], engines_data[engine].get("Options", []), key="options") if stage in (_t["stage_full"], _t["stage_options_only"]) else []
-st.markdown("---")
-
-# Chart Generation
-chart_bytes = None
-try:
-    rec = engines_data[engine]
-    oh, th, ot, tt = rec["Original HP"], rec["Tuned HP"], rec["Original Torque"], rec["Tuned Torque"]
-    ymax = max(oh, th, ot, tt) * 1.2
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 4), facecolor="black")
-    for ax in (ax1, ax2):
-        ax.set_facecolor("black")
-        ax.tick_params(colors="white")
-        [sp.set_color("white") for sp in ax.spines.values()]
-    ax1.bar(["Stock", "LoS"], [oh, th], color=["#777777", "#E11D48"])
-    ax2.bar(["Stock", "LoS"], [ot, tt], color=["#777777", "#E11D48"])
-    ax1.set_ylim(0, ymax);
-    ax2.set_ylim(0, ymax)
-    for i, v in enumerate([oh, th]): ax1.text(i, v * 1.02, f"{v} hp", ha="center", color="white")
-    for i, v in enumerate([ot, tt]): ax2.text(i, v * 1.02, f"{v} Nm", ha="center", color="white")
-    ax1.text(0.5, -0.15, f"{_t['difference']} +{th - oh} hp", transform=ax1.transAxes, ha="center", color="white")
-    ax2.text(0.5, -0.15, f"{_t['difference']} +{tt - ot} Nm", transform=ax2.transAxes, ha="center`, color="white")
-    ax1.set_title("HP", color="white"); ax2.set_title("Torque", color="white")
-    plt.tight_layout(); st.pyplot(fig)
-    st.markdown(f"> *{_t['chart_note']}*")
-    buf = io.BytesIO(); fig.savefig(buf, format="png", dpi=150); buf.seek(0); chart_bytes = buf.read(); plt.close(fig)
-except Exception as e:
-    st.warning(f"Chart error: {e}")
-
-# Contact Form UI
-st.header(_t["form_title"])
-with st.form("contact_form"):
-    name = st.text_input(_t["name"], key="name")
-    email_addr = st.text_input(_t["email"], key="email_addr")
-    vin = st.text_input(_t["vin"], key="vin")
-    message = st.text_area(_t["message"], height=120, key="message")
-    uploaded_file = st.file_uploader(_t["upload_file"], type=["txt", "pdf", "jpg", "png", "rar", "zip"], key="uploaded_file")
-    attach_pdf = st.checkbox(_t["attach_pdf"], key="attach_pdf")
-    send_copy = st.checkbox(_t["send_copy"], key="send_copy")
-    submitted = st.form_submit_button(_t["submit"])  # removed key argument
-if not submitted: st.stop()
-if not name: st.error(_t["error_name"]); st.stop()
-if "@" not in email_addr: st.error(_t["error_email"]); st.stop()
-
-# Telegram Notification
-cfg = st.secrets.get("telegram", {})
-if cfg.get("token") and cfg.get("chat_id"):
-    tele_text = textwrap.dedent(f"""
-Brand: {brand}
-Model: {model}
-Generation: {gen}
-Engine: {engine}
-Stage: {stage}
-Options: {', '.join(opts) or '-'}
-Name: {name}
-Email: {email_addr}
-VIN: {vin}
-Message: {message}
-"""
-    )
-    try:
-        requests.post(f"https://api.telegram.org/bot{cfg['token']}/sendMessage", data={"chat_id": cfg['chat_id'], "text": tele_text})
-        if uploaded_file:
-            requests.post(f"https://api.telegram.org/bot{cfg['token']}/sendDocument", data={"chat_id": cfg['chat_id']}, files={"document": (uploaded_file.name, uploaded_file.getvalue(), uploaded_file.type or "application/octet-stream")})
-    except Exception as e:
-        st.warning(f"Telegram error: {e}")
-
-# Email Copy
-if send_copy:
-    try:
-        smtp_cfg = st.secrets.get("smtp", {})
-        mail_text = textwrap.dedent(f"""
-Brand: {brand}
-Model:  {model}
-Generation: {gen}
-Engine: {engine}
-Stage: ${stage}
-Options: {', '.join(opts) or '-'}
-Name: {name}
-Email: {email_addr}
-VIN: {vin}
-Message: {message}
-"""
-        )
-        pdf = FPDF(); pdf.add_page(); pdf.set_font("Arial", size=12)
-        for ln in mail_text.split("\n"): pdf.cell(0,8,ln,ln=True)
-        pdf.ln(4)
-        for ln in _t["chart_note"].split("\n"): pdf.multi_cell(0,6,ln)
-        if chart_bytes:
-            tmp_img = tempfile.NamedTemporaryFile(delete=False, suffix=".png"); tmp_img.write(chart_bytes); tmp_img.flush()
-            pdf.image(tmp_img.name, x=10, y=pdf.get_y(), w=pdf.w-20)
-        tmp_pdf = tempfile.NamedTemporaryFile(delete=False, suffix=".pdf"); pdf.output(tmp_pdf.name)
-        msg = email.message.EmailMessage(); msg["Subject"]="Your Level of Speed Report"; msg["From"]=smtp_cfg.get("sender_email"); msg["To"]=email_addr; msg.set_content(mail_text)
-        if attach_pdf: msg.add_attachment(open(tmp_pdf.name, "rb").read(), maintype="application", subtype="pdf", filename="report.pdf")
-n        if smtp_cfg.get("port")==465: srv = smtplib.SMTP_SSL(smtp_cfg.get("server"), smtp_cfg.get("port"))
-            else: srv = smtplib.SMTP(smtp_cfg.get("server"), smtp_cfg.get("port")); srv.starttls()
-        srv.login(smtp_cfg.get("username"), smtp_cfg.get("password")); srv.send_message(msg); srv.quit()
-    except Exception as e:
-        st.warning(f"Email error: {e}")
-
-# Clear form to prevent re-submit crash
-for k in ["name","email_addr","vin","message","uploaded_file","attach_pdf","send_copy"]:
-    if k in st.session_state: del st.session_state[k]
-
-st.success(_t["success"])
+engine = st.selectbox(_t["select_engine"], [""] + engines, key="engine"]
