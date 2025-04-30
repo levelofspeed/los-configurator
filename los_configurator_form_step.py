@@ -187,25 +187,48 @@ Message: {message}
 
 # ---------------- Email -----------------------
 if send_copy:
+    # Prepare email body with selection details
+    selection_text = textwrap.dedent(f"""
+Brand: {brand}
+Model: {model}
+Generation: {gen}
+Engine: {engine}
+Stage: {stage}
+Options: {', '.join(opts_selected) or '-'}
+Name: {name}
+Email: {email_addr}
+VIN: {vin}
+Message: {message}
+""")
     msg = email.message.EmailMessage()
     msg["Subject"] = "Your LOS Configuration Report"
     msg["From"] = os.getenv("SMTP_SENDER")
     msg["To"] = email_addr
+    # Add selection details to email body
+    msg.set_content(selection_text)
+
     # write chart PNG to temp file and embed in PDF
     pdf = FPDF()
     pdf.add_page()
     pdf.set_font("Arial", size=12)
-    pdf.cell(0, 10, txt="Level of Speed Configuration", ln=True)
+    # Write selection details into PDF
+    for line in selection_text.strip().split("
+"):
+        pdf.cell(0, 8, txt=line, ln=True)
+    pdf.ln(4)
+    # Insert chart image
     if chart_bytes:
         with tempfile.NamedTemporaryFile(delete=False, suffix=".png") as tmp_img:
             tmp_img.write(chart_bytes)
             tmp_img.flush()
-            pdf.image(tmp_img.name, x=10, y=pdf.get_y()+10, w=pdf.w-20)
+            pdf.image(tmp_img.name, x=10, y=pdf.get_y(), w=pdf.w-20)
     # output PDF to temp and attach
     with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp_pdf:
         pdf.output(tmp_pdf.name)
         tmp_pdf.seek(0)
-        msg.add_attachment(tmp_pdf.read(), maintype="application", subtype="pdf", filename="report.pdf")
+        pdf_data = tmp_pdf.read()
+        msg.add_attachment(pdf_data, maintype="application", subtype="pdf", filename="report.pdf")
+
     # send email with appropriate connection
     host = os.getenv("SMTP_HOST")
     port = int(os.getenv("SMTP_PORT", "587"))
@@ -225,6 +248,7 @@ if send_copy:
         st.warning(f"Email error: {e}")
 
 st.success(_t["success"])
+st.stop()(_t["success"])
 st.stop()(_t["success"])
 st.stop()(_t["success"])
 st.stop()
