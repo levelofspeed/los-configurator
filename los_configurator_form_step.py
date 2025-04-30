@@ -124,8 +124,9 @@ if "@" not in email_addr:
     st.stop()
 
 # ---------------- Telegram --------------------
-TOKEN = os.getenv("TG_BOT_TOKEN")
-CHAT = os.getenv("TG_CHAT_ID")
+telegram_cfg = st.secrets["telegram"]
+TOKEN = telegram_cfg.get("token")
+CHAT = telegram_cfg.get("chat_id")
 if TOKEN and CHAT:
     txt = textwrap.dedent(f"""
 Brand: {brand}
@@ -147,7 +148,7 @@ Message: {message}
         )
         if uploaded_file:
             requests.post(
-                f"https://api.telegram.org/bot{TOKEN}/sendDocument",  
+                f"https://api.telegram.org/bot{TOKEN}/sendDocument",
                 data={"chat_id": CHAT},
                 files={"document": (uploaded_file.name, uploaded_file.getvalue(), uploaded_file.type or "application/octet-stream")},
                 timeout=20,
@@ -189,10 +190,14 @@ Message: {message}
         pdf.output(tmp_pdf.name)
         tmp_pdf.seek(0)
         msg.add_attachment(tmp_pdf.read(), maintype="application", subtype="pdf", filename="report.pdf")
-    host = os.getenv("SMTP_HOST")
-    port = int(os.getenv("SMTP_PORT", "587"))
-    user = os.getenv("SMTP_USER")
-    pwd = os.getenv("SMTP_PASS")
+    smtp_cfg = st.secrets["smtp"]
+    host = smtp_cfg.get("server")
+    port = smtp_cfg.get("port", 587)
+    user = smtp_cfg.get("username")
+    pwd = smtp_cfg.get("password")
+    sender = smtp_cfg.get("sender_email", user)
+    # set sender
+    msg["From"] = sender
     try:
         if port == 465:
             server = smtplib.SMTP_SSL(host, port)
