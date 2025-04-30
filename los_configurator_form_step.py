@@ -206,13 +206,25 @@ if send_copy:
         pdf.output(tmp_pdf.name)
         tmp_pdf.seek(0)
         msg.add_attachment(tmp_pdf.read(), maintype="application", subtype="pdf", filename="report.pdf")
+    # send email with appropriate connection
+    host = os.getenv("SMTP_HOST")
+    port = int(os.getenv("SMTP_PORT", "587"))
+    user = os.getenv("SMTP_USER")
+    pwd = os.getenv("SMTP_PASS")
     try:
-        with smtplib.SMTP_SSL(os.getenv("SMTP_HOST"), int(os.getenv("SMTP_PORT", "465"))) as server:
-            server.login(os.getenv("SMTP_USER"), os.getenv("SMTP_PASS"))
-            server.send_message(msg)
+        if port == 465:
+            server = smtplib.SMTP_SSL(host, port)
+        else:
+            server = smtplib.SMTP(host, port)
+            server.ehlo()
+            server.starttls()
+        server.login(user, pwd)
+        server.send_message(msg)
+        server.quit()
     except Exception as e:
         st.warning(f"Email error: {e}")
 
 st.success(_t["success"])
+st.stop()(_t["success"])
 st.stop()(_t["success"])
 st.stop()
