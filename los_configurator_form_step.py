@@ -181,5 +181,12 @@ Message: {message}
         if port == 465:
             server = smtplib.SMTP_SSL(host, port)
         else:
-            server = smtplib.SMTP(host, port); server.ehlo(); server.starttls(); server.ehlo()
+            server = smtplib.SMTP(host, port)
+            server.ehlo()
+            server.starttls()
+            server.ehlo()
         server.login(user, pwd)
+        server.send_message(msg)
+        server.quit()
+    except Exception as e:
+        st.warning(f"Email error: {e}")
