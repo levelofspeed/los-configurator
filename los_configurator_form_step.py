@@ -124,10 +124,13 @@ if "@" not in email_addr:
     st.stop()
 
 # ---------------- Telegram --------------------
-telegram_cfg = st.secrets["telegram"]
-TOKEN = telegram_cfg.get("token")
-CHAT = telegram_cfg.get("chat_id")
-if TOKEN and CHAT:
+# Fetch Telegram credentials from secrets or env
+telegram_cfg = st.secrets.get("telegram", {}) if hasattr(st, 'secrets') else {}
+TOKEN = telegram_cfg.get("token") or os.getenv("TG_BOT_TOKEN")
+CHAT = telegram_cfg.get("chat_id") or os.getenv("TG_CHAT_ID")
+if not TOKEN or not CHAT:
+    st.warning("Telegram credentials not found. Skipping Telegram notification.")
+else:
     txt = textwrap.dedent(f"""
 Brand: {brand}
 Model: {model}
@@ -190,25 +193,28 @@ Message: {message}
         pdf.output(tmp_pdf.name)
         tmp_pdf.seek(0)
         msg.add_attachment(tmp_pdf.read(), maintype="application", subtype="pdf", filename="report.pdf")
-    smtp_cfg = st.secrets["smtp"]
+    smtp_cfg = st.secrets.get("smtp", {})
     host = smtp_cfg.get("server")
-    port = smtp_cfg.get("port", 587)
+    port = int(smtp_cfg.get("port", 587))
     user = smtp_cfg.get("username")
     pwd = smtp_cfg.get("password")
     sender = smtp_cfg.get("sender_email", user)
     # set sender
     msg["From"] = sender
     try:
+        # Establish connection based on port
         if port == 465:
             server = smtplib.SMTP_SSL(host, port)
         else:
             server = smtplib.SMTP(host, port)
             server.ehlo()
             server.starttls()
+            server.ehlo()
         server.login(user, pwd)
         server.send_message(msg)
         server.quit()
     except Exception as e:
+        st.warning(f"Email error: {e}")
         st.warning(f"Email error: {e}")
 
 st.success(_t["success"])
