@@ -76,37 +76,8 @@ try:
     plt.tight_layout(); st.pyplot(fig)
     buf=io.BytesIO(); fig.savefig(buf,format="png",dpi=150); buf.seek(0); chart_bytes=buf.getvalue(); plt.close(fig)
 except Exception as e:
-    st.warning(f"Chart error: {e}")
+        st.warning(f"Telegram error: {e}")
 
-# ---------------- Contact Form ---------------
-st.header(_t["form_title"])
-with st.form("contact_form"):
-    name = st.text_input(_t["name"])
-    email_addr = st.text_input(_t["email"])
-    vin = st.text_input(_t["vin"])
-    message = st.text_area(_t["message"], height=120)
-    uploaded_file = st.file_uploader(_t["upload_file"], type=["txt","pdf","jpg","png","rar","zip"])
-    attach_pdf = st.checkbox(_t["attach_pdf"])
-    send_copy = st.checkbox(_t["send_copy"])
-    submit = st.form_submit_button(_t["submit"])
-
-if not submit: st.stop()
-if not name:
-    st.error(_t["error_name"]); st.stop()
-if "@" not in email_addr:
-    st.error(_t["error_email"]); st.stop()
-
-# ---------------- Telegram --------------------
-TOKEN=os.getenv("TG_BOT_TOKEN"); CHAT=os.getenv("TG_CHAT_ID")
-if TOKEN and CHAT:
-    txt=f"Brand: {brand}\nModel: {model}\nGeneration: {gen}\nEngine: {engine}\nStage: {stage}\nOptions: {', '.join(opts_selected) or '-'}\nName: {name}\nEmail: {email_addr}\nVIN: {vin}\nMessage: {message}"
-    try:
-        requests.post(f"https://api.telegram.org/bot{TOKEN}/sendMessage", data={"chat_id": CHAT, "text": txt}, timeout=10)
-        if uploaded_file is not None:
-            requests.post(
-                f"https://api.telegram.org/bot{TOKEN}/sendDocument",
-                data={"chat_id": CHAT},
-                files={"document": (uploaded_file.name, uploaded_file.getvalue(), uploaded_file.type or "application/octet-stream")},
-                timeout=20,
-            )
-    except Exception as e:
+# ---------------- Done -----------------------
+st.success(_t["success"])
+st.stop()
