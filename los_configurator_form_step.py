@@ -104,4 +104,4 @@ try:
     ax1.text(0.5,-0.15,f"{_t['difference']} +{th-oh} hp",ha="center",color="white",transform=ax1.transAxes)
     ax2.text(0.5,-0.15,f"{_t['difference']} +{tt-ot} Nm",ha="center",color="white",transform=ax2.transAxes)
     plt.tight_layout(); st.pyplot(fig)
-    buf=io.BytesIO(); fig.savefig(buf,format="png",dpi
+    buf = io.BytesIO(); fig.savefig(buf, format="png", dpi=150); buf.seek(0); chart_bytes = buf.getvalue(); plt.close(fig)
