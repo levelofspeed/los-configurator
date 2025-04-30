@@ -12,7 +12,7 @@ languages = {"en": "English", "ru": "Русский", "de": "Deutsch"}
 translations = {
     "en": {"select_brand": "Select Brand", "select_model": "Select Model", "select_generation": "Select Generation", "select_fuel": "Select Fuel", "select_engine": "Select Engine", "select_stage": "Select Stage", "stage_power": "Power only", "stage_options_only": "Options only", "stage_full": "Full package", "options": "Options", "form_title": "Contact Us", "name": "Name", "email": "Email", "vin": "VIN", "message": "Message", "send_copy": "Send me a copy", "attach_pdf": "Attach PDF report", "upload_file": "Attach file", "submit": "Submit", "success": "Thank you! We will contact you soon.", "error_name": "Please enter your name", "error_email": "Please enter a valid email", "error_select_options": "Select at least one option", "difference": "Difference"},
     "ru": {"select_brand": "Выберите марку", "select_model": "Выберите модель", "select_generation": "Выберите поколение", "select_fuel": "Выберите топливо", "select_engine": "Выберите двигатель", "select_stage": "Выберите Stage", "stage_power": "Только мощность", "stage_options_only": "Только опции", "stage_full": "Полный пакет", "options": "Опции", "form_title": "Свяжитесь с нами", "name": "Имя", "email": "Email", "vin": "VIN", "message": "Сообщение", "send_copy": "Прислать копию", "attach_pdf": "Приложить PDF отчёт", "upload_file": "Прикрепить файл", "submit": "Отправить", "success": "Спасибо! Мы скоро свяжемся.", "error_name": "Введите имя", "error_email": "Введите корректный email", "error_select_options": "Выберите хотя бы одну опцию", "difference": "Разница"},
-    "de": {"select_brand": "Marke wählen", "select_model": "Modell wählen", "select_generation": "Generation wählen", "select_fuel": "Kraftstoff wählen", "select_engine": "Motor wählen", "select_stage": "Stage wählen", "stage_power": "Nur Leistung", "stage_options_only": "Nur Optionen", "stage_full": "Komplettpaket", "options": "Optionen", "form_title": "Kontakt", "name": "Name", "email": "E-Mail", "vin": "VIN", "message": "Nachricht", "send_copy": "Kopie an mich senden", "attach_pdf": "PDF Bericht anhängen", "upload_file": "Datei anhängen", "submit": "Senden", "success": "Danke! Wir melden uns bald.", "error_name": "Bitte Namen eingeben", "error_email": "Bitte gültige E-Mail eingeben", "error_select_options": "Wählen Sie mindestens eine Option", "difference": "Differenz"}
+    "de": {"select_brand": "Marke wählen", "select_model": "Modell wählen", "select_generation": "Generation wählen", "select_fuel": "Kraftstoff wählen", "select_engine": "Motor wählen", "select_stage": "Stage wählen", "stage_power": "Nur Leistung", "stage_options_only": "Nur Optionen", "stage_full": "Komplettpaket", "options": "Optionen", "form_title": "Kontakt", "name": "Name", "email": "E‑Mail", "vin": "VIN", "message": "Nachricht", "send_copy": "Kopie an mich senden", "attach_pdf": "PDF Bericht anhängen", "upload_file": "Datei anhängen", "submit": "Senden", "success": "Danke! Wir melden uns bald.", "error_name": "Bitte Namen eingeben", "error_email": "Bitte gültige E‑Mail eingeben", "error_select_options": "Wählen Sie mindestens eine Option", "difference": "Differenz"}
 }
 class SafeTranslations(UserDict):
     def __missing__(self, key):
@@ -35,8 +35,8 @@ def load_db():
     with open(os.path.join("data", "full_database.json"), encoding="utf-8") as f:
         return json.load(f)
 
-def prune(n):
-    return {k: prune(v) for k,v in n.items() if v not in (None,{},[],"")} if isinstance(n,dict) else n
+def prune(node):
+    return {k: prune(v) for k,v in node.items() if v not in (None,{},[],"")} if isinstance(node,dict) else node
 
 db = prune(load_db())
 clear = lambda *k: [st.session_state.pop(x, None) for x in k]
@@ -52,7 +52,7 @@ engines_data = db[brand][model][gen]
 fuels = sorted({d.get("Type") for d in engines_data.values() if isinstance(d,dict) and d})
 fuel = st.selectbox(_t["select_fuel"], [""]+fuels, key="fuel", on_change=lambda: clear("engine","stage","options"))
 if not fuel: st.stop()
-engines = [n for n, d in engines_data.items() if isinstance(d,dict) and d.get("Type") == fuel]
+engines = [n for n,d in engines_data.items() if isinstance(d,dict) and d.get("Type")==fuel]
 engine = st.selectbox(_t["select_engine"], [""]+engines, key="engine", on_change=lambda: clear("stage","options"))
 if not engine: st.stop()
 stage = st.selectbox(_t["select_stage"], [_t["stage_power"], _t["stage_options_only"], _t["stage_full"]], key="stage")
@@ -65,7 +65,7 @@ try:
     rec = engines_data[engine]
     oh, th = rec["Original HP"], rec["Tuned HP"]
     ot, tt = rec["Original Torque"], rec["Tuned Torque"]
-    ymax = max(oh, th, ot, tt)*1.2
+    ymax = max(oh, th, ot, tt) * 1.2
     fig,(ax1,ax2) = plt.subplots(1,2, figsize=(10,4), facecolor="black")
     for ax in (ax1,ax2):
         ax.set_facecolor("black"); ax.tick_params(colors="white"); [s.set_color("white") for s in ax.spines.values()]
@@ -84,4 +84,6 @@ except Exception as e:
 st.header(_t["form_title"])
 with st.form("contact"):
     name = st.text_input(_t["name"])
-    email_addr = st.text_input(_t[
+    email_addr = st.text_input(_t["email"])
+    vin = st.text_input(_t["vin"])
+    message = st.text_area(_t[
