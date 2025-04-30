@@ -210,7 +210,7 @@ Message: {message}
     # ---------------- PDF Chart Note ----------------
     note_text = _t["chart_note"]
     for note_line in note_text.strip().split("
-"):
+"): 
         safe_note = note_line.encode('latin-1','ignore').decode('latin-1')
         pdf.cell(0, 8, txt=safe_note, ln=True)
     pdf.ln(4)
