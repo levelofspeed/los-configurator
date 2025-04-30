@@ -126,11 +126,11 @@ if not name: st.error(_t["error_name"]); st.stop()
 if "@" not in email_addr: st.error(_t["error_email"]); st.stop()
 
 # ---------------- Telegram --------------------
-telegram_cfg=st.secrets.get("telegram",{}) if hasattr(st,'secrets') else {}
-TOKEN=telegram_cfg.get("token") or os.getenv("TG_BOT_TOKEN")
-CHAT=telegram_cfg.get("chat_id") or os.getenv("TG_CHAT_ID")
+telegram_cfg = st.secrets.get("telegram", {}) if hasattr(st, 'secrets') else {}
+TOKEN = telegram_cfg.get("token") or os.getenv("TG_BOT_TOKEN")
+CHAT = telegram_cfg.get("chat_id") or os.getenv("TG_CHAT_ID")
 if TOKEN and CHAT:
-    txt=textwrap.dedent(f"""
+    txt = textwrap.dedent(f"""
 Brand: {brand}
 Model: {model}
 Generation: {gen}
@@ -142,10 +142,21 @@ Email: {email_addr}
 VIN: {vin}
 Message: {message}
 """)
-    try: requests.post(f"https://api.telegram.org/bot{TOKEN}/sendMessage",data={"chat_id":CHAT,"text":txt},timeout=10)
+    try:
+        requests.post(
+            f"https://api.telegram.org/bot{TOKEN}/sendMessage",
+            data={"chat_id": CHAT, "text": txt},
+            timeout=10,
+        )
         if uploaded_file:
-            requests.post(f"https://api.telegram.org/bot{TOKEN}/sendDocument",data={"chat_id":CHAT},files={"document":(uploaded_file.name,uploaded_file.getvalue(),uploaded_file.type or "application/octet-stream")},timeout=20)
-    except Exception as e: st.warning(f"Telegram error: {e}")
+            requests.post(
+                f"https://api.telegram.org/bot{TOKEN}/sendDocument",
+                data={"chat_id": CHAT},
+                files={"document": (uploaded_file.name, uploaded_file.getvalue(), uploaded_file.type or "application/octet-stream")},
+                timeout=20,
+            )
+    except Exception as e:
+        st.warning(f"Telegram error: {e}")
 
 # ---------------- Email -----------------------
 if send_copy:
