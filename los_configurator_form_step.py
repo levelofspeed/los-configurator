@@ -140,7 +140,7 @@ def load_db():
         return json.load(f)
 def prune(node):
     if isinstance(node, dict):
-        return {k: prune(v) for k, v in node.items() if v not in (None, {}, [], "")}\
+        return {k: prune(v) for k, v in node.items() if v not in (None, {}, [], "")}
 
     return node
 db = prune(load_db())
@@ -162,4 +162,4 @@ fuel = st.selectbox(_t["select_fuel"], [""] + fuels, key="fuel", on_change=lambd
 if not fuel:
     st.stop()
 engines = [name for name, d in engines_data.items() if isinstance(d, dict) and d.get("Type") == fuel]
-engine = st.selectbox(_t["select_engine"], [""] + engines, key="engine"]
+engine = st.selectbox(_t["select_engine"], [""] + engines, key="engine")
