@@ -138,11 +138,12 @@ st.title("Level of Speed Configurator 🚘")
 def load_db():
     with open(os.path.join("data", "full_database.json"), encoding="utf-8") as f:
         return json.load(f)
+
 def prune(node):
     if isinstance(node, dict):
-        return {k: prune(v) for k, v in node.items() if v not in (None, {}, [], "")}
-
+        return {k: prune(v) for k, v in node.items() if v not in (None, {}, [], "")}  
     return node
+
 db = prune(load_db())
 clear = lambda *keys: [st.session_state.pop(k, None) for k in keys]
 
@@ -162,4 +163,27 @@ fuel = st.selectbox(_t["select_fuel"], [""] + fuels, key="fuel", on_change=lambd
 if not fuel:
     st.stop()
 engines = [name for name, d in engines_data.items() if isinstance(d, dict) and d.get("Type") == fuel]
-engine = st.selectbox(_t["select_engine"], [""] + engines, key="engine")
+engine = st.selectbox(_t["select_engine"], [""] + engines, key="engine", on_change=lambda: clear("stage", "options"))
+if not engine:
+    st.stop()
+stage = st.selectbox(_t["select_stage"], [_t["stage_power"], _t["stage_options_only"], _t["stage_full"]], key="stage")
+opts = st.multiselect(_t["options"], engines_data[engine].get("Options", []), key="options") if stage in (_t["stage_full"], _t["stage_options_only"]) else []
+st.markdown("---")
+
+# Chart Generation
+chart_bytes = None
+try:
+    rec = engines_data[engine]
+    oh, th, ot, tt = rec["Original HP"], rec["Tuned HP"], rec["Original Torque"], rec["Tuned Torque"]
+    ymax = max(oh, th, ot, tt) * 1.2
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 4), facecolor="black")
+    for ax in (ax1, ax2):
+        ax.set_facecolor("black")
+        ax.tick_params(colors="white")
+        [sp.set_color("white") for sp in ax.spines.values()]
+    ax1.bar(["Stock", "LoS"], [oh, th], color=["#777777", "#E11D48"])
+    ax2.bar(["Stock", "LoS"], [ot, tt], color=["#777777", "#E11D48"])
+    ax1.set_ylim(0, ymax)
+    ax2.set_ylim(0, ymax)
+    for i, v in enumerate([oh, th]): ax1.text(i, v * 1.02, f"{v} hp", ha="center", color="white")
+    for i, v## truncated due to length##
