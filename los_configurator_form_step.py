@@ -9,21 +9,9 @@ st.set_page_config(page_title="Level of Speed Configurator", layout="wide")
 
 # ---------------- Translations ----------------
 languages = {"en": "English", "ru": "Русский", "de": "Deutsch"}
-# Full translations for supported languages
-_en = {
-    "select_brand": "Select Brand", "select_model": "Select Model", "select_generation": "Select Generation", "select_fuel": "Select Fuel",
-    "select_engine": "Select Engine", "select_stage": "Select Stage",
-    "stage_power": "Power only", "stage_options_only": "Options only", "stage_full": "Full package",
-    "options": "Options", "form_title": "Contact Us",
-    "name": "Name", "email": "Email", "vin": "VIN", "message": "Message",
-    "send_copy": "Send me a copy", "attach_pdf": "Attach PDF report",
-    "upload_file": "Attach file", "submit": "Submit", "success": "Thank you! We will contact you soon.",
-    "error_name": "Please enter your name", "error_email": "Please enter a valid email",
-    "error_select_options": "Select at least one option", "difference": "Difference"
-}
-# For now, reuse English translations for Russian and German
+# Use the same translation dict for all languages for now
 translations = {"en": _en, "ru": _en, "de": _en}
-class _T(UserDict):(UserDict):
+class _T(UserDict):(UserDict):(UserDict):
     def __missing__(self, key):
         return key
 
