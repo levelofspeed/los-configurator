@@ -191,17 +191,21 @@ if send_copy:
     msg["Subject"] = "Your LOS Configuration Report"
     msg["From"] = os.getenv("SMTP_SENDER")
     msg["To"] = email_addr
-    with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
-        pdf = FPDF()
-        pdf.add_page()
-        pdf.set_font("Arial", size=12)
-        pdf.cell(0, 10, txt="Level of Speed Configuration", ln=True)
-        if chart_bytes:
-            tmp.write(chart_bytes)
-            pdf.image(tmp.name, x=10, y=pdf.get_y()+10, w=pdf.w-20)
-        pdf.output(tmp.name)
-        tmp.seek(0)
-        msg.add_attachment(tmp.read(), maintype="application", subtype="pdf", filename="report.pdf")
+    # write chart PNG to temp file and embed in PDF
+    pdf = FPDF()
+    pdf.add_page()
+    pdf.set_font("Arial", size=12)
+    pdf.cell(0, 10, txt="Level of Speed Configuration", ln=True)
+    if chart_bytes:
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".png") as tmp_img:
+            tmp_img.write(chart_bytes)
+            tmp_img.flush()
+            pdf.image(tmp_img.name, x=10, y=pdf.get_y()+10, w=pdf.w-20)
+    # output PDF to temp and attach
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp_pdf:
+        pdf.output(tmp_pdf.name)
+        tmp_pdf.seek(0)
+        msg.add_attachment(tmp_pdf.read(), maintype="application", subtype="pdf", filename="report.pdf")
     try:
         with smtplib.SMTP_SSL(os.getenv("SMTP_HOST"), int(os.getenv("SMTP_PORT", "465"))) as server:
             server.login(os.getenv("SMTP_USER"), os.getenv("SMTP_PASS"))
@@ -210,4 +214,5 @@ if send_copy:
         st.warning(f"Email error: {e}")
 
 st.success(_t["success"])
+st.stop()(_t["success"])
 st.stop()
