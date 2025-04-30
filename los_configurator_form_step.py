@@ -91,4 +91,9 @@ with st.form("contact_form"):
 # ---------------- Validation ------------------
 if not submit: st.stop()
 if not name: st.error(_t["error_name"]); st.stop()
-if "@" not in email
+if "@" not in email_addr:
+    st.error(_t["error_email"]); st.stop()
+
+# --- success placeholder (remove when you add send logic) ---
+st.success(_t["success"])
+st.stop()
