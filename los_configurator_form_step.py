@@ -56,9 +56,11 @@ _t = _T(translations.get(lang, translations["en"]))
 # ---------------- Logo ------------------------
 logo = next((p for p in ("logo.png","logo_white.png") if os.path.exists(p)), None)
 if logo:
-    _, c, _ = st.columns([1,2,1]); c.image(logo, width=180)
+    # Center the logo with wider middle column and allow full-width display to avoid cropping
+    _, c, _ = st.columns([1, 4, 1])
+    c.image(logo, use_column_width=True)
 
-st.title("Level of Speed Configurator 🚘")
+st.title("Level of Speed Configurator 🚘")("Level of Speed Configurator 🚘")
 
 # ---------------- Load DB ---------------------
 @st.cache_data
