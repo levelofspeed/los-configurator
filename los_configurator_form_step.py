@@ -1,6 +1,13 @@
 import streamlit as st
 import matplotlib.pyplot as plt
-import os, json, io, textwrap, requests, smtplib, email.message, tempfile
+import os
+import json
+import io
+import textwrap
+import requests
+import smtplib
+import email.message
+import tempfile
 from collections import UserDict
 from fpdf import FPDF
 
@@ -136,7 +143,7 @@ def load_db():
 
 def prune(node):
     if isinstance(node, dict):
-        return {k: prune(v) for k, v in node.items() if v not in (None, {}, [], "")} 
+        return {k: prune(v) for k, v in node.items() if v not in (None, {}, [], "")}  
     return node
 
 db = prune(load_db())
@@ -144,24 +151,24 @@ clear = lambda *keys: [st.session_state.pop(k, None) for k in keys]
 
 # ---------------- Selection flow --------------
 brand = st.selectbox(_t["select_brand"], [""] + sorted(db.keys()), key="brand",
-                    on_change=lambda: clear("model","generation","fuel","engine","stage","options"))
+                     on_change=lambda: clear("model","generation","fuel","engine","stage","options"))
 if not brand:
     st.stop()
 model = st.selectbox(_t["select_model"], [""] + sorted(db[brand].keys()), key="model",
-                    on_change=lambda: clear("generation","fuel","engine","stage","options"))
+                     on_change=lambda: clear("generation","fuel","engine","stage","options"))
 if not model:
     st.stop()
 gen = st.selectbox(_t["select_generation"], [""] + sorted(db[brand][model].keys()), key="generation",
-                   on_change=lambda: clear("fuel","engine","stage","options"))
+                    on_change=lambda: clear("fuel","engine","stage","options"))
 if not gen:
     st.stop()
 engines_data = db[brand][model][gen]
 fuels = sorted({d.get("Type") for d in engines_data.values() if isinstance(d, dict)})
 fuel = st.selectbox(_t["select_fuel"], [""] + fuels, key="fuel",
-                   on_change=lambda: clear("engine","stage","options"))
+                    on_change=lambda: clear("engine","stage","options"))
 if not fuel:
     st.stop()
-engines = [n for n, d in engines_data.items() if isinstance(d, dict) and d.get("Type") == fuel]
+engines = [n for n,d in engines_data.items() if isinstance(d, dict) and d.get("Type")==fuel]
 engine = st.selectbox(_t["select_engine"], [""] + engines, key="engine",
                      on_change=lambda: clear("stage","options"))
 if not engine:
@@ -185,8 +192,8 @@ try:
     ax1.bar(["Stock","LoS"],[oh,th], color=["#777777","#E11D48"])
     ax2.bar(["Stock","LoS"],[ot,tt], color=["#777777","#E11D48"])
     ax1.set_ylim(0,ymax); ax2.set_ylim(0,ymax)
-    for i, v in enumerate([oh, th]): ax1.text(i, v*1.02, f"{v} hp", ha="center", color="white")
-    for i, v in enumerate([ot, tt]): ax2.text(i, v*1.02, f"{v} Nm", ha="center", color="white")
+    for i,v in enumerate([oh,th]): ax1.text(i, v*1.02, f"{v} hp", ha="center", color="white")
+    for i,v in enumerate([ot,tt]): ax2.text(i, v*1.02, f"{v} Nm", ha="center", color="white")
     ax1.text(0.5, -0.15, f"{_t['difference']} +{th-oh} hp", transform=ax1.transAxes, ha="center", color="white")
     ax2.text(0.5, -0.15, f"{_t['difference']} +{tt-ot} Nm", transform=ax2.transAxes, ha="center", color="white")
     ax1.set_title("HP", color="white"); ax2.set_title("Torque", color="white")
@@ -196,5 +203,63 @@ try:
 except Exception as e:
     st.warning(f"Chart error: {e}")
 
-# ---------------- Contact Form ```
+# ---------------- Contact Form ----------------
+st.header(_t["form_title"])
+with st.form("contact_form"):
+    name = st.text_input(_t["name"])
+    email_addr = st.text_input(_t["email"])
+    vin = st.text_input(_t["vin"])
+    message = st.text_area(_t["message"], height=120)
+    uploaded_file = st.file_uploader(_t["upload_file"], type=["txt","pdf","jpg","png","rar","zip"])
+    attach_pdf = st.checkbox(_t["attach_pdf"])
+    send_copy = st.checkbox(_t["send_copy"])
+    submit = st.form_submit_button(_t["submit"])
+if not submit:
+    st.stop()
+if not name:
+    st.error(_t["error_name"])
+    st.stop()
+if "@" not in email_addr:
+    st.error(_t["error_email"])
+    st.stop()
+
+# ---------------- Telegram --------------------
+telegram_cfg = st.secrets.get("telegram", {})
+TOKEN = telegram_cfg.get("token")
+CHAT = telegram_cfg.get("chat_id")
+if TOKEN and CHAT:
+    txt = textwrap.dedent(f"""
+Brand: {brand}
+Model: {model}
+Generation: {gen}
+Engine: {engine}
+Stage: {stage}
+Options: {', '.join(opts) or '-'}
+Name: {name}
+Email: {email_addr}
+VIN: {vin}
+Message: {message}
+""" )
+    try:
+        requests.post(f"https://api.telegram.org/bot{TOKEN}/sendMessage", data={"chat_id": CHAT, "text": txt})
+        if uploaded_file:
+            requests.post(f"https://api.telegram.org/bot{TOKEN}/sendDocument", data={"chat_id": CHAT}, files={"document": (uploaded_file.name, uploaded_file.getvalue(), uploaded_file.type or "application/octet-stream")})
+    except Exception as e:
+        st.warning(f"Telegram error: {e}")
+
+# ---------------- Email -----------------------
+if send_copy:
+    selection_text = textwrap.dedent(f"""
+Brand: {brand}
+Model: {model}
+Generation: {gen}
+Engine: {engine}
+Stage: {stage}
+Options: {', '.join(opts) or '-'}
+Name: {name}
+Email: {email_addr}
+VIN: {vin}
+Message: {message}
+"""
+")
 }]}
