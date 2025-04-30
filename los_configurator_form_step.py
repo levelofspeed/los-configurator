@@ -181,8 +181,11 @@ Message: {message}
     pdf = FPDF()
     pdf.add_page()
     pdf.set_font("Arial", size=12)
-    for line in selection_text.strip().split("\n"):
-        pdf.cell(0, 8, txt=line, ln=True)
+    for line in selection_text.strip().split("
+"):
+        # ensure only latin1 characters for PDF
+        safe_line = line.encode('latin-1', 'ignore').decode('latin-1')
+        pdf.cell(0, 8, txt=safe_line, ln=True)
     pdf.ln(4)
     if chart_bytes:
         with tempfile.NamedTemporaryFile(delete=False, suffix=".png") as tmp_img:
