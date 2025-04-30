@@ -9,18 +9,11 @@ st.set_page_config(page_title="Level of Speed Configurator", layout="wide")
 
 # ---------------- Translations ----------------
 languages = {"en": "English", "ru": "Русский", "de": "Deutsch"}
-_en = {
-    "select_brand": "Select Brand", "select_model": "Select Model", "select_generation": "Select Generation", "select_fuel": "Select Fuel",
-    "select_engine": "Select Engine", "select_stage": "Select Stage",
-    "stage_power": "Power only", "stage_options_only": "Options only", "stage_full": "Full package",
-    "options": "Options", "form_title": "Contact Us",
-    "name": "Name", "email": "Email", "vin": "VIN", "message": "Message",
-    "send_copy": "Send me a copy", "attach_pdf": "Attach PDF report",
-    "upload_file": "Attach file", "submit": "Submit", "success": "Thank you! We will contact you soon.",
-    "error_name": "Please enter your name", "error_email": "Please enter a valid email",
-    "error_select_options": "Select at least one option", "difference": "Difference"
+translations = {
+    "en": {"select_brand": "Select Brand", "select_model": "Select Model", "select_generation": "Select Generation", "select_fuel": "Select Fuel", "select_engine": "Select Engine", "select_stage": "Select Stage", "stage_power": "Power only", "stage_options_only": "Options only", "stage_full": "Full package", "options": "Options", "form_title": "Contact Us", "name": "Name", "email": "Email", "vin": "VIN", "message": "Message", "send_copy": "Send me a copy", "attach_pdf": "Attach PDF report", "upload_file": "Attach file", "submit": "Submit", "success": "Thank you! We will contact you soon.", "error_name": "Please enter your name", "error_email": "Please enter a valid email", "error_select_options": "Select at least one option", "difference": "Difference"},
+    "ru": {"select_brand": "Выберите марку", "select_model": "Выберите модель", "select_generation": "Выберите поколение", "select_fuel": "Выберите топливо", "select_engine": "Выберите двигатель", "select_stage": "Выберите Stage", "stage_power": "Только мощность", "stage_options_only": "Только опции", "stage_full": "Полный пакет", "options": "Опции", "form_title": "Свяжитесь с нами", "name": "Имя", "email": "Email", "vin": "VIN", "message": "Сообщение", "send_copy": "Прислать копию", "attach_pdf": "Приложить PDF отчёт", "upload_file": "Прикрепить файл", "submit": "Отправить", "success": "Спасибо! Мы скоро свяжемся.", "error_name": "Введите имя", "error_email": "Введите корректный email", "error_select_options": "Выберите хотя бы одну опцию", "difference": "Разница"},
+    "de": {"select_brand": "Marke wählen", "select_model": "Modell wählen", "select_generation": "Generation wählen", "select_fuel": "Kraftstoff wählen", "select_engine": "Motor wählen", "select_stage": "Stage wählen", "stage_power": "Nur Leistung", "stage_options_only": "Nur Optionen", "stage_full": "Komplettpaket", "options": "Optionen", "form_title": "Kontakt", "name": "Name", "email": "E-Mail", "vin": "VIN", "message": "Nachricht", "send_copy": "Kopie an mich senden", "attach_pdf": "PDF Bericht anhängen", "upload_file": "Datei anhängen", "submit": "Senden", "success": "Danke! Wir melden uns bald.", "error_name": "Bitte Namen eingeben", "error_email": "Bitte gültige E-Mail eingeben", "error_select_options": "Wählen Sie mindestens eine Option", "difference": "Differenz"}
 }
-translations = {"en": _en, "ru": _en, "de": _en}
 
 class _T(UserDict):
     def __missing__(self, key):
