@@ -252,8 +252,9 @@ Message: {message}
 
 # ---------------- Email -----------------------
 if send_copy:
-    smtp_cfg = st.secrets.get("smtp", {})
-    selection_text = textwrap.dedent(f"""
+    try:
+        smtp_cfg = st.secrets.get("smtp", {})
+        selection_text = textwrap.dedent(f"""
 Brand: {brand}
 Model: {model}
 Generation: {gen}
@@ -265,35 +266,34 @@ Email: {email_addr}
 VIN: {vin}
 Message: {message}
 """
-    )
-    pdf = FPDF()
-    pdf.add_page()
-    pdf.set_font("Arial", size=12)
-    for ln in selection_text.strip().split("\n"):
-        pdf.cell(0, 8, ln, ln=True)
-    pdf.ln(4)
-    for line in _t["chart_note"].split("\n"):
-        pdf.multi_cell(0, 6, line)
-    if chart_bytes:
-        img_tmp = tempfile.NamedTemporaryFile(delete=False, suffix=".png")
-        img_tmp.write(chart_bytes)
-        img_tmp.flush()
-        pdf.image(img_tmp.name, x=10, y=pdf.get_y(), w=pdf.w - 20)
-    tmp_pdf = tempfile.NamedTemporaryFile(delete=False, suffix=".pdf")
-    pdf.output(tmp_pdf.name)
-
-    msg = email.message.EmailMessage()
-    msg["Subject"] = "Your Level of Speed Report"
-    msg["From"] = smtp_cfg.get("sender_email")
-    msg["To"] = email_addr
-    msg.set_content(selection_text)
-    if attach_pdf:
-        msg.add_attachment(
-            open(tmp_pdf.name, "rb").read(),
-            maintype="application", subtype="pdf",
-            filename="report.pdf"
         )
-    try:
+        pdf = FPDF()
+        pdf.add_page()
+        pdf.set_font("Arial", size=12)
+        for ln in selection_text.strip().split("\n"):
+            pdf.cell(0, 8, ln, ln=True)
+        pdf.ln(4)
+        for line in _t["chart_note"].split("\n"):
+            pdf.multi_cell(0, 6, line)
+        if chart_bytes:
+            img_tmp = tempfile.NamedTemporaryFile(delete=False, suffix=".png")
+            img_tmp.write(chart_bytes)
+            img_tmp.flush()
+            pdf.image(img_tmp.name, x=10, y=pdf.get_y(), w=pdf.w - 20)
+        tmp_pdf = tempfile.NamedTemporaryFile(delete=False, suffix=".pdf")
+        pdf.output(tmp_pdf.name)
+
+        msg = email.message.EmailMessage()
+        msg["Subject"] = "Your Level of Speed Report"
+        msg["From"] = smtp_cfg.get("sender_email")
+        msg["To"] = email_addr
+        msg.set_content(selection_text)
+        if attach_pdf:
+            msg.add_attachment(
+                open(tmp_pdf.name, "rb").read(),
+                maintype="application", subtype="pdf",
+                filename="report.pdf"
+            )
         if smtp_cfg.get("port") == 465:
             server = smtplib.SMTP_SSL(smtp_cfg.get("server"), smtp_cfg.get("port"))
         else:
@@ -303,6 +303,6 @@ Message: {message}
         server.send_message(msg)
         server.quit()
     except Exception as e:
-        st.warning(f"Email error: {e}")
+        st.warning(f"Send copy error: {e}")
 
 st.success(_t["success"])
