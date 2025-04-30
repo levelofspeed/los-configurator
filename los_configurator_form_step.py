@@ -54,13 +54,10 @@ with col_lang:
 _t = _T(translations.get(lang, translations["en"]))
 
 # ---------------- Logo ------------------------
-logo = next((p for p in ("logo.png", "logo_white.png") if os.path.exists(p)), None)
+logo = next((p for p in ("logo.png","logo_white.png") if os.path.exists(p)), None)
 if logo:
-    # Center and display logo larger to avoid cropping
-    _, c, _ = st.columns([1, 3, 1])  # wider middle column
-    c.image(logo, width=170)
+    _, c, _ = st.columns([1,2,1]); c.image(logo, width=180)
 
-# ---------------- Page Title ----------------
 st.title("Level of Speed Configurator 🚘")
 
 # ---------------- Load DB ---------------------
