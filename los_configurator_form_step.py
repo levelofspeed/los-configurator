@@ -317,3 +317,5 @@ for k in ["name", "email", "vin", "message", "uploaded_file", "attach_pdf", "sen
         del st.session_state[k]
 
 st.success(_t["success"])
+# Reset app to avoid re-submit crash
+st.experimental_rerun()
