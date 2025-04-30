@@ -60,7 +60,7 @@ if logo:
     _, c, _ = st.columns([1, 4, 1])
     c.image(logo, use_column_width=True)
 
-st.title("Level of Speed Configurator 🚘")("Level of Speed Configurator 🚘")
+st.title("Level of Speed Configurator 🚘")
 
 # ---------------- Load DB ---------------------
 @st.cache_data
