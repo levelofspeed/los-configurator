@@ -87,21 +87,23 @@ opts_selected = st.multiselect(_t["options"], engines_data[engine].get("Options"
 st.markdown("---")
 
 # ----------------------------- Chart ----------------------------------------
-chart_bytes=None
+chart_bytes = None
 try:
-    rec=engines_data[engine]
-    oh,th,ot,tt = rec["Original HP"],rec["Tuned HP"],rec["Original Torque"],rec["Tuned Torque"]
-    ymax=max(oh,th,ot,tt)*1.2
-    fig,(ax1,ax2)=plt.subplots(1,2,figsize=(10,4),facecolor="black")
-    for ax in (ax1,ax2):
+    rec = engines_data[engine]
+    oh, th, ot, tt = rec["Original HP"], rec["Tuned HP"], rec["Original Torque"], rec["Tuned Torque"]
+    ymax = max(oh, th, ot, tt) * 1.2
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 4), facecolor="black")
+    for ax in (ax1, ax2):
         ax.set_facecolor("black"); ax.tick_params(colors="white"); [s.set_color("white") for s in ax.spines.values()]
-    ax1.bar(["Stock","LoS"],[oh,th],color=["#808080","#FF0000"])
-    ax2.bar(["Stock","LoS"],[ot,tt],color=["#808080","#FF0000"])
-    ax1.set_ylim(0,ymax); ax2.set_ylim(0,ymax)
-    ax1.set_title("HP",color="white"); ax2.set_title("Torque",color="white")
-    for i,v in enumerate([oh,th]): ax1.text(i,v*1.02,f"{v} hp",ha="center",color="white")
-    for i,v in enumerate([ot,tt]): ax2.text(i,v*1.02,f"{v} Nm",ha="center",color="white")
-    ax1.text(0.5,-0.15,f"{_t['difference']} +{th-oh} hp",ha="center",color="white",transform=ax1.transAxes)
-    ax2.text(0.5,-0.15,f"{_t['difference']} +{tt-ot} Nm",ha="center",color="white",transform=ax2.transAxes)
+    ax1.bar(["Stock", "LoS"], [oh, th], color=["#808080", "#FF0000"])
+    ax2.bar(["Stock", "LoS"], [ot, tt], color=["#808080", "#FF0000"])
+    ax1.set_ylim(0, ymax); ax2.set_ylim(0, ymax)
+    ax1.set_title("HP", color="white"); ax2.set_title("Torque", color="white")
+    for i, v in enumerate([oh, th]): ax1.text(i, v * 1.02, f"{v} hp", ha="center", color="white")
+    for i, v in enumerate([ot, tt]): ax2.text(i, v * 1.02, f"{v} Nm", ha="center", color="white")
+    ax1.text(0.5, -0.15, f"{_t['difference']} +{th - oh} hp", ha="center", color="white", transform=ax1.transAxes)
+    ax2.text(0.5, -0.15, f"{_t['difference']} +{tt - ot} Nm", ha="center", color="white", transform=ax2.transAxes)
     plt.tight_layout(); st.pyplot(fig)
     buf = io.BytesIO(); fig.savefig(buf, format="png", dpi=150); buf.seek(0); chart_bytes = buf.getvalue(); plt.close(fig)
+except Exception as e:
+    st.warning(f"Chart error: {e}")
