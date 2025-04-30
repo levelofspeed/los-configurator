@@ -58,7 +58,7 @@ logo = next((p for p in ("logo.png", "logo_white.png") if os.path.exists(p)), No
 if logo:
     # Center and display logo larger to avoid cropping
     _, c, _ = st.columns([1, 3, 1])  # wider middle column
-    c.image(logo, width=160)
+    c.image(logo, width=170)
 
 # ---------------- Page Title ----------------
 st.title("Level of Speed Configurator 🚘")
