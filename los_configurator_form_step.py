@@ -283,7 +283,7 @@ Message: {message}
         pdf.set_font('DejaVu', size=12)
         # Write selection text
         for ln in mail.split("
-"):
+"): pdf.cell(0, 8, ln, ln=True):
             pdf.cell(0, 8, ln, ln=True)
         # Embed chart image
         if chart_bytes:
