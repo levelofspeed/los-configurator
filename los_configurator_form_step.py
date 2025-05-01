@@ -273,7 +273,7 @@ Message: {message}
             )
             pdf = FPDF()
             pdf.add_page()
-            pdf.add_font('DejaVu','', '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', uni=True)
+            pdf.add_font('DejaVu','', '/usr/share/fonts/truetype/dejavu/Deja Sans.ttf', uni=True)
             pdf.set_font('DejaVu', size=12)
             for line in mail_body.split("\n"):
                 pdf.cell(0,8,line,ln=True)
@@ -282,9 +282,9 @@ Message: {message}
                 tmp_img.write(chart_bytes); tmp_img.flush()
                 pdf.image(tmp_img.name, x=10, y=pdf.get_y()+4, w=pdf.w-20)
                 pdf.ln(6)
-            # Add note under chart
-            pdf.set_font('DejaVu', size=10)
-            pdf.multi_cell(0,6, _t['chart_note'])
+                # Add note under chart
+                pdf.set_font('DejaVu', size=10)
+                pdf.multi_cell(0,6, _t['chart_note'])
             tmp_pdf = tempfile.NamedTemporaryFile(delete=False, suffix='.pdf')
             pdf.output(tmp_pdf.name)
 
