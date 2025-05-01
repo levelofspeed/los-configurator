@@ -276,8 +276,8 @@ Message: {message}
         pdf = FPDF()
         pdf.add_page()
         # Register and set Unicode TrueType font for multi-language support
-        pdf.add_font('DejaVu', '', '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', uni=True)('DejaVu', '', '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', uni=True)
-        pdf.set_font('DejaVu', size=12)('DejaVu', size=12)
+                pdf.add_font('DejaVu', '', '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', uni=True)
+                pdf.set_font('DejaVu', size=12)
         for ln in mail_text.split("\n"):
             pdf.cell(0, 8, ln, ln=True)
         pdf.ln(4)
