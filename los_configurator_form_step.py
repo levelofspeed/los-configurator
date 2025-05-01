@@ -282,7 +282,7 @@ Message: {message}
                 tmp_img.write(chart_bytes); tmp_img.flush()
                 pdf.image(tmp_img.name, x=10, y=pdf.get_y()+4, w=pdf.w-20)
                 pdf.ln(6)
-                # Add note under chart
+                # Always add note under chart
                 pdf.set_font('DejaVu', size=10)
                 pdf.multi_cell(0,6, _t['chart_note'])
             tmp_pdf = tempfile.NamedTemporaryFile(delete=False, suffix='.pdf')
