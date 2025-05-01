@@ -142,10 +142,12 @@ def prune(node):
         return {k: prune(v) for k,v in node.items() if v not in (None,{},[],"")}
     return node
 
+# Main
+
 db = prune(load_db())
 clear = lambda *keys: [st.session_state.pop(k, None) for k in keys]
 
-# Selection Flow
+# Selections
 brand = st.selectbox(_t["select_brand"], [""] + sorted(db.keys()), key="brand", on_change=lambda: clear("model","generation","fuel","engine","stage","options"))
 if not brand: st.stop()
 model = st.selectbox(_t["select_model"], [""] + sorted(db[brand].keys()), key="model", on_change=lambda: clear("generation","fuel","engine","stage","options"))
@@ -155,28 +157,26 @@ if not gen: st.stop()
 
 eng_data = db[brand][model][gen]
 fuels = sorted({d.get("Type") for d in eng_data.values() if isinstance(d, dict)})
-fuel = st.selectbox(_t["select_fuel"],[""]+fuels, key="fuel", on_change=lambda: clear("engine","stage","options"))
+fuel = st.selectbox(_t["select_fuel"], [""]+fuels, key="fuel", on_change=lambda: clear("engine","stage","options"))
 if not fuel: st.stop()
 
 engines = [nm for nm,d in eng_data.items() if isinstance(d, dict) and d.get("Type")==fuel]
-engine = st.selectbox(_t["select_engine"],[""]+engines, key="engine", on_change=lambda: clear("stage","options"))
+engine = st.selectbox(_t["select_engine"], [""]+engines, key="engine", on_change=lambda: clear("stage","options"))
 if not engine: st.stop()
 
-stage = st.selectbox(_t["select_stage"],[_t["stage_power"],_t["stage_options_only"],_t["stage_full"]], key="stage")
-opts = st.multiselect(_t["options"], eng_data[engine].get("Options",[])) if stage in (_t["stage_full"],_t["stage_options_only"]) else []
+stage = st.selectbox(_t["select_stage"], [_t["stage_power"], _t["stage_options_only"], _t["stage_full"]], key="stage")
+opts = st.multiselect(_t["options"], eng_data[engine].get("Options",[])) if stage in (_t["stage_full"], _t["stage_options_only"]) else []
 st.markdown("---")
 
 # Chart
-chart_bytes = None
-try:
+def render_chart():
     rec = eng_data[engine]
     oh, th = rec["Original HP"], rec["Tuned HP"]
     ot, tt = rec["Original Torque"], rec["Tuned Torque"]
     ymax = max(oh,th,ot,tt)*1.2
     fig,(ax1,ax2)=plt.subplots(1,2,figsize=(10,4),facecolor="black")
     for ax in (ax1,ax2):
-        ax.set_facecolor("black")
-        ax.tick_params(colors="white")
+        ax.set_facecolor("black"); ax.tick_params(colors="white");
         for sp in ax.spines.values(): sp.set_color("white")
     ax1.bar(["Stock","LoS"],[oh,th],color=["#777777","#E11D48"])
     ax2.bar(["Stock","LoS"],[ot,tt],color=["#777777","#E11D48"])
@@ -189,7 +189,12 @@ try:
     st.pyplot(fig)
     st.markdown(f"> *{_t['chart_note']}*", unsafe_allow_html=True)
     buf=io.BytesIO(); fig.savefig(buf,format="png",dpi=150); buf.seek(0)
-    chart_bytes=buf.read(); plt.close(fig)
+    data = buf.read(); plt.close(fig)
+    return data
+
+chart_bytes = None
+try:
+    chart_bytes = render_chart()
 except Exception as e:
     st.warning(f"Chart error: {e}")
 
@@ -204,14 +209,23 @@ with st.form("contact_form"):
     attach_pdf = st.checkbox(_t["attach_pdf"], key="attach_pdf")
     send_copy = st.checkbox(_t["send_copy"], key="send_copy")
     submitted = st.form_submit_button(_t["submit"])
-if not submitted: st.stop()
-if not name: st.error(_t["error_name"]); st.stop()
-if "@" not in email_addr: st.error(_t["error_email"]); st.stop()
 
-# Telegram Notification
-tele_cfg = st.secrets.get("telegram", {})
-if tele_cfg.get("token") and tele_cfg.get("chat_id"):
-    tele_text = textwrap.dedent(f"""
+if not submitted:
+    st.stop()
+
+if not name:
+    st.error(_t["error_name"])
+    st.stop()
+if "@" not in email_addr:
+    st.error(_t["error_email"])
+    st.stop()
+
+# Process Submission
+try:
+    # Telegram
+    tele_cfg = st.secrets.get("telegram", {})
+    if tele_cfg.get("token") and tele_cfg.get("chat_id"):
+        tele_text = textwrap.dedent(f"""
 Brand: {brand}
 Model: {model}
 Generation: {gen}
@@ -223,27 +237,28 @@ Email: {email_addr}
 VIN: {vin}
 Message: {message}
 """
-    )
-    try:
-        r1 = requests.post(f"https://api.telegram.org/bot{tele_cfg['token']}/sendMessage",
-                            data={"chat_id":tele_cfg['chat_id'],"text":tele_text})
-        if not r1.ok: st.warning(f"Telegram sendMessage error: {r1.text}")
+        )
+        r1 = requests.post(
+            f"https://api.telegram.org/bot{tele_cfg['token']}/sendMessage",
+            data={"chat_id":tele_cfg['chat_id'],"text":tele_text}
+        )
+        if not r1.ok:
+            st.warning(f"Telegram error: {r1.text}")
         if uploaded_file:
-            r2 = requests.post(f"https://api.telegram.org/bot{tele_cfg['token']}/sendDocument",
-                                data={"chat_id":tele_cfg['chat_id']},
-                                files={"document":(uploaded_file.name,uploaded_file.getvalue(),uploaded_file.type)})
-            if not r2.ok: st.warning(f"Telegram sendDocument error: {r2.text}")
-    except Exception as e:
-        st.warning(f"Telegram error: {e}")
-else:
-    st.warning("Telegram credentials not found in secrets")
+            r2 = requests.post(
+                f"https://api.telegram.org/bot{tele_cfg['token']}/sendDocument",
+                data={"chat_id":tele_cfg['chat_id']},
+                files={"document":(uploaded_file.name,uploaded_file.getvalue(),uploaded_file.type)}
+            )
+            if not r2.ok:
+                st.warning(f"Telegram document error: {r2.text}")
+    else:
+        st.warning("Telegram credentials not found in secrets")
 
-# Email to Client
-if send_copy:
-    smtp_cfg = st.secrets.get("smtp", {})
-    if smtp_cfg:
-        try:
-            # Prepare text body
+    # Email
+    if send_copy:
+        smtp_cfg = st.secrets.get("smtp", {})
+        if smtp_cfg:
             mail_body = textwrap.dedent(f"""
 Brand: {brand}
 Model: {model}
@@ -257,24 +272,22 @@ VIN: {vin}
 Message: {message}
 """
             )
-            # Build PDF
             pdf = FPDF()
             pdf.add_page()
-            pdf.add_font('DejaVu', '', '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', uni=True)
+            pdf.add_font('DejaVu','', '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', uni=True)
             pdf.set_font('DejaVu', size=12)
             for line in mail_body.split("\n"):
-                pdf.cell(0, 8, line, ln=True)
+                pdf.cell(0,8,line,ln=True)
             if chart_bytes and attach_pdf:
                 tmp_img = tempfile.NamedTemporaryFile(delete=False, suffix='.png')
                 tmp_img.write(chart_bytes); tmp_img.flush()
                 pdf.image(tmp_img.name, x=10, y=pdf.get_y()+4, w=pdf.w-20)
             pdf.ln(6)
             for note_line in _t['chart_note'].split("\n"):
-                pdf.multi_cell(0, 6, note_line)
+                pdf.multi_cell(0,6,note_line)
             tmp_pdf = tempfile.NamedTemporaryFile(delete=False, suffix='.pdf')
             pdf.output(tmp_pdf.name)
 
-            # Craft email
             msg = email.message.EmailMessage()
             msg['Subject'] = 'Level of Speed Configurator Report'
             msg['From'] = smtp_cfg['sender_email']
@@ -285,21 +298,14 @@ Message: {message}
                     data = f.read()
                 msg.add_attachment(data, maintype='application', subtype='pdf', filename='report.pdf')
 
-            # Send email
             with smtplib.SMTP(smtp_cfg['server'], smtp_cfg['port']) as server:
                 server.starttls()
                 server.login(smtp_cfg['username'], smtp_cfg['password'])
                 server.send_message(msg)
-        except Exception as e:
-            st.warning(f"Email error: {e}")
-    else:
-        st.warning("SMTP credentials not found in secrets")
+        else:
+            st.warning("SMTP credentials not found in secrets")
 
-# Reset form state
-def reset_state():
-    for key in ['name','email','vin','message','uploaded_file','attach_pdf','send_copy']:
-        st.session_state.pop(key, None)
-reset_state()
-
-st.success(_t["success"])
-# End of script
+    st.success(_t["success"])
+except Exception as e:
+    st.error(f"Submission error: {e}")
+st.stop()
