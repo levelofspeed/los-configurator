@@ -116,115 +116,101 @@ class _T(UserDict):
     def __missing__(self, key):
         return key
 
-# Header & Language Selector
-_, col_lang = st.columns([10, 2])
+# Layout & Selector
+_, col_lang = st.columns([10,2])
 with col_lang:
     lang = st.selectbox("", list(languages.keys()), format_func=lambda x: languages[x], label_visibility="collapsed")
 _t = _T(translations.get(lang, translations["en"]))
 
 # Logo & Title
-logo = next((p for p in ("logo.png", "logo_white.png") if os.path.exists(p)), None)
+logo = next((p for p in ("logo.png","logo_white.png") if os.path.exists(p)), None)
 if logo:
-    _, c, _ = st.columns([1, 4, 1])
+    _, c,_ = st.columns([1,4,1])
     c.image(logo, width=160)
 st.title("Level of Speed Configurator 🚘")
 
-# Load Database
+# Load & Prune DB
 @st.cache_data
 def load_db():
-    path = os.path.join("data", "full_database.json")
-    with open(path, encoding="utf-8") as f:
+    with open(os.path.join("data","full_database.json"), encoding="utf-8") as f:
         return json.load(f)
 
-# Prune empty entries
 def prune(node):
-    if isinstance(node, dict):
-        return {k: prune(v) for k,v in node.items() if v not in (None,{},[],"")}
+    if isinstance(node,dict): return {k:prune(v) for k,v in node.items() if v not in (None,[],{},"")}
     return node
 
-# Main
-db = prune(load_db())
-clear = lambda *keys: [st.session_state.pop(k, None) for k in keys]
+db=prune(load_db())
+clear=lambda *k:[st.session_state.pop(x,None) for x in k]
 
 # Selections
-brand = st.selectbox(_t["select_brand"], [""] + sorted(db.keys()), key="brand", on_change=lambda: clear("model","generation","fuel","engine","stage","options"))
+brand=st.selectbox(_t["select_brand"],[""]+sorted(db),key="brand",on_change=lambda:clear("model","generation","fuel","engine","stage","options"))
 if not brand: st.stop()
-model = st.selectbox(_t["select_model"], [""] + sorted(db[brand].keys()), key="model", on_change=lambda: clear("generation","fuel","engine","stage","options"))
+model=st.selectbox(_t["select_model"],[""]+sorted(db[brand]),key="model",on_change=lambda:clear("generation","fuel","engine","stage","options"))
 if not model: st.stop()
-gen = st.selectbox(_t["select_generation"], [""] + sorted(db[brand][model].keys()), key="generation", on_change=lambda: clear("fuel","engine","stage","options"))
+gen=st.selectbox(_t["select_generation"],[""]+sorted(db[brand][model]),key="generation",on_change=lambda:clear("fuel","engine","stage","options"))
 if not gen: st.stop()
 
-eng_data = db[brand][model][gen]
-fuels = sorted({d.get("Type") for d in eng_data.values() if isinstance(d, dict)})
-fuel = st.selectbox(_t["select_fuel"], [""]+fuels, key="fuel", on_change=lambda: clear("engine","stage","options"))
+data=db[brand][model][gen]
+fuels=sorted({d.get("Type") for d in data.values() if isinstance(d,dict)})
+fuel=st.selectbox(_t["select_fuel"],[""]+fuels,key="fuel",on_change=lambda:clear("engine","stage","options"))
 if not fuel: st.stop()
-
-engines = [nm for nm,d in eng_data.items() if isinstance(d, dict) and d.get("Type")==fuel]
-engine = st.selectbox(_t["select_engine"], [""]+engines, key="engine", on_change=lambda: clear("stage","options"))
+engines=[k for k,v in data.items() if isinstance(v,dict) and v.get("Type")==fuel]
+engine=st.selectbox(_t["select_engine"],[""]+engines,key="engine",on_change=lambda:clear("stage","options"))
 if not engine: st.stop()
-
-stage = st.selectbox(_t["select_stage"], [_t["stage_power"], _t["stage_options_only"], _t["stage_full"]], key="stage")
-opts = st.multiselect(_t["options"], eng_data[engine].get("Options",[])) if stage in (_t["stage_full"], _t["stage_options_only"]) else []
+stage=st.selectbox(_t["select_stage"],[_t["stage_power"],_t["stage_options_only"],_t["stage_full"]],key="stage")
+opts=st.multiselect(_t["options"],data[engine].get("Options",[])) if stage in (_t["stage_full"],_t["stage_options_only"]) else []
 st.markdown("---")
 
-# Chart
+# Chart Renderer
 def render_chart():
-    rec = eng_data[engine]
-    oh, th = rec["Original HP"], rec["Tuned HP"]
-    ot, tt = rec["Original Torque"], rec["Tuned Torque"]
-    ymax = max(oh,th,ot,tt)*1.2
-    fig,(ax1,ax2)=plt.subplots(1,2,figsize=(10,4),facecolor="black")
-    for ax in (ax1,ax2):
-        ax.set_facecolor("black"); ax.tick_params(colors="white");
-        for sp in ax.spines.values(): sp.set_color("white")
-    ax1.bar(["Stock","LoS"],[oh,th],color=["#777777","#E11D48"])
-    ax2.bar(["Stock","LoS"],[ot,tt],color=["#777777","#E11D48"])
-    ax1.set_ylim(0,ymax); ax2.set_ylim(0,ymax)
-    for i,v in enumerate([oh,th]): ax1.text(i,v*1.02,f"{v} hp",ha="center",color="white")
-    for i,v in enumerate([ot,tt]): ax2.text(i,v*1.02,f"{v} Nm",ha="center",color="white")
-    ax1.text(0.5,-0.15,f"{_t['difference']} +{th-oh} hp",transform=ax1.transAxes,ha="center",color="white")
-    ax2.text(0.5,-0.15,f"{_t['difference']} +{tt-ot} Nm",transform=ax2.transAxes,ha="center",color="white")
-    ax1.set_title("HP",color="white"); ax2.set_title("Torque",color="white")
+    rec=data[engine]
+    oh,th=rec["Original HP"],rec["Tuned HP"]
+    ot,tt=rec["Original Torque"],rec["Tuned Torque"]
+    ymax=max(oh,th,ot,tt)*1.2
+    fig,(a1,a2)=plt.subplots(1,2,figsize=(10,4),facecolor='black')
+    for a in (a1,a2):
+        a.set_facecolor('black'); a.tick_params(colors='white');
+        for s in a.spines.values(): s.set_color('white')
+    a1.bar(['Stock','LoS'],[oh,th],color=['#777','#E11D48'])
+    a2.bar(['Stock','LoS'],[ot,tt],color=['#777','#E11D48'])
+    a1.set_ylim(0,ymax); a2.set_ylim(0,ymax)
+    for i,v in enumerate([oh,th]): a1.text(i,v*1.02,f"{v} hp",ha='center',color='white')
+    for i,v in enumerate([ot,tt]): a2.text(i,v*1.02,f"{v} Nm",ha='center',color='white')
+    a1.text(0.5,-0.15,f"{_t['difference']} +{th-oh} hp",transform=a1.transAxes,ha='center',color='white')
+    a2.text(0.5,-0.15,f"{_t['difference']} +{tt-ot} Nm",transform=a2.transAxes,ha='center',color='white')
+    a1.set_title('HP',color='white'); a2.set_title('Torque',color='white')
     st.pyplot(fig)
-    st.markdown(f"> *{_t['chart_note']}*", unsafe_allow_html=True)
-    buf=io.BytesIO(); fig.savefig(buf,format="png",dpi=150); buf.seek(0)
-    data = buf.read(); plt.close(fig)
+    st.markdown(f"> *{_t['chart_note']}*",unsafe_allow_html=True)
+    buf=io.BytesIO(); fig.savefig(buf,format='png',dpi=150); buf.seek(0)
+    data=buf.read(); plt.close(fig)
     return data
 
-chart_bytes = None
-try:
-    chart_bytes = render_chart()
-except Exception as e:
-    st.warning(f"Chart error: {e}")
+chart_bytes=None
+try: chart_bytes=render_chart()
+except Exception as e: st.warning(f"Chart error: {e}")
 
 # Contact Form
-st.header(_t["form_title"])
-with st.form("contact_form"):
-    name = st.text_input(_t["name"], key="name")
-    email_addr = st.text_input(_t["email"], key="email")
-    vin = st.text_input(_t["vin"], key="vin")
-    message = st.text_area(_t["message"], height=120, key="message")
-    uploaded_file = st.file_uploader(_t["upload_file"], type=["txt","pdf","jpg","png","rar","zip"], key="uploaded_file")
-    attach_pdf = st.checkbox(_t["attach_pdf"], key="attach_pdf")
-    send_copy = st.checkbox(_t["send_copy"], key="send_copy")
-    submitted = st.form_submit_button(_t["submit"])
+st.header(_t['form_title'])
+with st.form('contact_form'):
+    name=st.text_input(_t['name'],key='name')
+    email=st.text_input(_t['email'],key='email')
+    vin=st.text_input(_t['vin'],key='vin')
+    msg=st.text_area(_t['message'],height=120,key='message')
+    file=st.file_uploader(_t['upload_file'],type=['txt','pdf','jpg','png','rar','zip'],key='file')
+    pdf_attach=st.checkbox(_t['attach_pdf'],key='attach_pdf')
+    copy=st.checkbox(_t['send_copy'],key='send_copy')
+    go=st.form_submit_button(_t['submit'])
 
-if not submitted:
-    st.stop()
+if not go: st.stop()
+if not name: st.error(_t['error_name']);st.stop()
+if '@' not in email: st.error(_t['error_email']);st.stop()
 
-if not name:
-    st.error(_t["error_name"])
-    st.stop()
-if "@" not in email_addr:
-    st.error(_t["error_email"])
-    st.stop()
-
-# Process Submission
+# Submission
 try:
     # Telegram
-    tele_cfg = st.secrets.get("telegram", {})
-    if tele_cfg.get("token") and tele_cfg.get("chat_id"):
-        tele_text = textwrap.dedent(f"""
+    cfg=st.secrets.get('telegram',{})
+    if cfg.get('token') and cfg.get('chat_id'):
+        ttext=textwrap.dedent(f"""
 Brand: {brand}
 Model: {model}
 Generation: {gen}
@@ -232,33 +218,22 @@ Engine: {engine}
 Stage: {stage}
 Options: {', '.join(opts) or '-'}
 Name: {name}
-Email: {email_addr}
+Email: {email}
 VIN: {vin}
-Message: {message}
+Message: {msg}
 """
         )
-        r1 = requests.post(
-            f"https://api.telegram.org/bot{tele_cfg['token']}/sendMessage",
-            data={"chat_id":tele_cfg['chat_id'],"text":tele_text}
-        )
-        if not r1.ok:
-            st.warning(f"Telegram error: {r1.text}")
-        if uploaded_file:
-            r2 = requests.post(
-                f"https://api.telegram.org/bot{tele_cfg['token']}/sendDocument",
-                data={"chat_id":tele_cfg['chat_id']},
-                files={"document":(uploaded_file.name,uploaded_file.getvalue(),uploaded_file.type)}
-            )
-            if not r2.ok:
-                st.warning(f"Telegram document error: {r2.text}")
-    else:
-        st.warning("Telegram credentials not found in secrets")
+        r=requests.post(f"https://api.telegram.org/bot{cfg['token']}/sendMessage",data={'chat_id':cfg['chat_id'],'text':ttext})
+        if not r.ok: st.warning(f"Telegram error: {r.text}")
+        if file:
+            r2=requests.post(f"https://api.telegram.org/bot{cfg['token']}/sendDocument",data={'chat_id':cfg['chat_id']},files={'document':(file.name,file.getvalue(),file.type)})
+            if not r2.ok: st.warning(f"Telegram document error: {r2.text}")
+    else: st.warning('Telegram credentials not found')
 
-    # Email
-    if send_copy:
-        smtp_cfg = st.secrets.get("smtp", {})
-        if smtp_cfg:
-            mail_body = textwrap.dedent(f"""
+    # Email + PDF
+    if copy:
+        sc=st.secrets.get('smtp',{})
+        mb=textwrap.dedent(f"""
 Brand: {brand}
 Model: {model}
 Generation: {gen}
@@ -266,46 +241,26 @@ Engine: {engine}
 Stage: {stage}
 Options: {', '.join(opts) or '-'}
 Name: {name}
-Email: {email_addr}
+Email: {email}
 VIN: {vin}
-Message: {message}
+Message: {msg}
 """
-            )
-            pdf = FPDF()
-            pdf.add_page()
-            pdf.add_font('DejaVu','', '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', uni=True)
-            pdf.set_font('DejaVu', size=12)
-            for line in mail_body.split("\n"):
-                pdf.cell(0,8,line,ln=True)
-            if chart_bytes and attach_pdf:
-                tmp_img = tempfile.NamedTemporaryFile(delete=False, suffix='.png')
-                tmp_img.write(chart_bytes); tmp_img.flush()
-                pdf.image(tmp_img.name, x=10, y=pdf.get_y()+4, w=pdf.w-20)
-                pdf.ln(6)
-                # Always add note under chart
-                pdf.set_font('DejaVu', size=10)
-                pdf.multi_cell(0,6, _t['chart_note'])
-            tmp_pdf = tempfile.NamedTemporaryFile(delete=False, suffix='.pdf')
-            pdf.output(tmp_pdf.name)
-
-            msg = email.message.EmailMessage()
-            msg['Subject'] = 'Level of Speed Configurator Report'
-            msg['From'] = smtp_cfg['sender_email']
-            msg['To'] = email_addr
-            msg.set_content(mail_body)
-            if attach_pdf:
-                with open(tmp_pdf.name, 'rb') as f:
-                    data = f.read()
-                msg.add_attachment(data, maintype='application', subtype='pdf', filename='report.pdf')
-
-            with smtplib.SMTP(smtp_cfg['server'], smtp_cfg['port']) as server:
-                server.starttls()
-                server.login(smtp_cfg['username'], smtp_cfg['password'])
-                server.send_message(msg)
-        else:
-            st.warning("SMTP credentials not found in secrets")
-
-    st.success(_t["success"])
+        )
+        pdf=FPDF(); pdf.add_page(); pdf.add_font('DejaVu','','/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf',uni=True);pdf.set_font('DejaVu',size=12)
+        for ln in mb.split('\n'): pdf.cell(0,8,ln,ln=True)
+        if chart_bytes and pdf_attach:
+            img=tempfile.NamedTemporaryFile(delete=False,suffix='.png');img.write(chart_bytes);img.flush()
+            pdf.image(img.name,x=10,y=pdf.get_y()+4,w=pdf.w-20)
+            pdf.ln(8)
+            pdf.set_font('DejaVu',size=10)
+            pdf.multi_cell(0,6,_t['chart_note'])
+        tmp=tempfile.NamedTemporaryFile(delete=False,suffix='.pdf');pdf.output(tmp.name)
+        msg_email=email.message.EmailMessage();msg_email['Subject']='Level of Speed Configurator Report';msg_email['From']=sc.get('sender_email');msg_email['To']=email;msg_email.set_content(mb)
+        if pdf_attach:
+            with open(tmp.name,'rb') as f:msg_email.add_attachment(f.read(),maintype='application',subtype='pdf',filename='report.pdf')
+        with smtplib.SMTP(sc['server'],sc['port']) as s:
+            s.starttls();s.login(sc['username'],sc['password']);s.send_message(msg_email)
+    st.success(_t['success'])
 except Exception as e:
     st.error(f"Submission error: {e}")
 st.stop()
