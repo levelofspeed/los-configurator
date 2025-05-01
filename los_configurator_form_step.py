@@ -143,7 +143,6 @@ def prune(node):
     return node
 
 # Main
-
 db = prune(load_db())
 clear = lambda *keys: [st.session_state.pop(k, None) for k in keys]
 
@@ -282,9 +281,10 @@ Message: {message}
                 tmp_img = tempfile.NamedTemporaryFile(delete=False, suffix='.png')
                 tmp_img.write(chart_bytes); tmp_img.flush()
                 pdf.image(tmp_img.name, x=10, y=pdf.get_y()+4, w=pdf.w-20)
-            pdf.ln(6)
-            for note_line in _t['chart_note'].split("\n"):
-                pdf.multi_cell(0,6,note_line)
+                pdf.ln(6)
+            # Add note under chart
+            pdf.set_font('DejaVu', size=10)
+            pdf.multi_cell(0,6, _t['chart_note'])
             tmp_pdf = tempfile.NamedTemporaryFile(delete=False, suffix='.pdf')
             pdf.output(tmp_pdf.name)
 
