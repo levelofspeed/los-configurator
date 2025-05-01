@@ -14,7 +14,7 @@ from fpdf import FPDF
 st.set_page_config(page_title="Level of Speed Configurator", layout="wide")
 
 # Translations
-glanguages = {"en": "English", "ru": "Русский", "de": "Deutsch"}
+languages = {"en": "English", "ru": "Русский", "de": "Deutsch"}
 translations = {
     "en": {
         "select_brand": "Select Brand",
@@ -111,7 +111,7 @@ translations = {
     }
 }
 
-class _T(UserDict):
+class _T(UserDict):(UserDict):
     def __missing__(self, key):
         return key
 
