@@ -282,6 +282,7 @@ Message: {message}
         pdf.set_font('DejaVu', size=12)
         # Write selection text
         for ln in mail.split("
+")
 "):
             pdf.cell(0, 8, ln, ln=True)
         # Embed chart image
@@ -293,6 +294,7 @@ Message: {message}
         # Add space then note below chart
         pdf.ln(6)
         for note_line in _t['chart_note'].split("
+")
 "):
             pdf.multi_cell(0, 6, note_line)
         # Output PDF file
