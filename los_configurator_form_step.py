@@ -273,7 +273,7 @@ Message: {message}
             )
             pdf = FPDF()
             pdf.add_page()
-            pdf.add_font('DejaVu','', '/usr/share/fonts/truetype/dejavu/Deja Sans.ttf', uni=True)
+            pdf.add_font('DejaVu','', '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', uni=True)
             pdf.set_font('DejaVu', size=12)
             for line in mail_body.split("\n"):
                 pdf.cell(0,8,line,ln=True)
