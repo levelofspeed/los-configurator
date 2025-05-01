@@ -280,7 +280,7 @@ Message: {message}
         pdf.add_page()
         pdf.add_font('DejaVu', '', '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', uni=True)
         pdf.set_font('DejaVu', size=12)
-                # Write selection text
+        # Write selection text
         for ln in mail.split("
 "):
             pdf.cell(0, 8, ln, ln=True)
@@ -298,28 +298,8 @@ Message: {message}
         # Output PDF file
         tmp_pdf = tempfile.NamedTemporaryFile(delete=False, suffix='.pdf')
         pdf.output(tmp_pdf.name)
-        # Prepare email message
-        msg = email.message.EmailMessage()
-        msg["Subject"] = "Your Level of Speed Report"
-        msg["From"] = smtp_cfg.get("sender_email")
-        msg["To"] = email_addr
-        msg.set_content(mail)
-        if attach_pdf:
-            with open(tmp_pdf.name, "rb") as f:
-                msg.add_attachment(f.read(), maintype="application", subtype="pdf", filename="report.pdf")
-        # Send email via SMTP
-        if smtp_cfg.get("port") == 465:
-            srv = smtplib.SMTP_SSL(smtp_cfg.get("server"), smtp_cfg.get("port"))
-        else:
-            srv = smtplib.SMTP(smtp_cfg.get("server"), smtp_cfg.get("port"))
-            srv.starttls()
-        srv.login(smtp_cfg.get("username"), smtp_cfg.get("password"))
-        srv.send_message(msg)
-        srv.quit()
-    except Exception as e:
-        st.warning(f"Email error: {e}")
 
-# Clear state and success
+# Clear state and success and success
 for k in ["name","email","vin","message","uploaded_file","attach_pdf","send_copy"]:
     st.session_state.pop(k,None)
 st.success(_t["success"])
