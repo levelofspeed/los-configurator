@@ -169,27 +169,39 @@ opts = st.multiselect(_t["options"], engines_data[engine].get("Options",[])) if 
 st.markdown("---")
 
 # Chart Generation
-chart_bytes=None
+chart_bytes = None
 try:
-    rec=engines_data[engine]
-    oh,th,ot,tt=rec["Original HP"],rec["Tuned HP"],rec["Original Torque"],rec["Tuned Torque"]
-    ymax=max(oh,th,ot,tt)*1.2
-    fig,(ax1,ax2)=plt.subplots(1,2,figsize=(10,4),facecolor="black")
-    for ax in (ax1,ax2):
-        ax.set_facecolor("black");ax.tick_params(colors="white");
-        for sp in ax.spines.values():sp.set_color("white")
-    ax1.bar(["Stock","LoS"],[oh,th],color=["#777777","#E11D48"])
-    ax2.bar(["Stock","LoS"],[ot,tt],color=["#777777","#E11D48"])
-    ax1.set_ylim(0,ymax);ax2.set_ylim(0,ymax)
-    for i,v in enumerate([oh,th]):ax1.text(i,v*1.02,f"{v} hp",ha="center",color="white")
-    for i,v in enumerate([ot,tt]):ax2.text(i,v*1.02,f"{v} Nm",ha="center",color="white")
-    ax1.text(0.5,-0.15,f"{_t['difference']} +{th-oh} hp",transform=ax1.transAxes,ha="center",color="white")
-    ax2.text(0.5,-0.15,f"{_t['difference']} +{tt-ot} Nm",transform=ax2.transAxes,ha="center",color="white")
-    ax1.set_title("HP",color="white");ax2.set_title("Torque",color="white")
+    rec = engines_data[engine]
+    oh = rec["Original HP"]
+    th = rec["Tuned HP"]
+    ot = rec["Original Torque"]
+    tt = rec["Tuned Torque"]
+    ymax = max(oh, th, ot, tt) * 1.2
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 4), facecolor="black")
+    for ax in (ax1, ax2):
+        ax.set_facecolor("black")
+        ax.tick_params(colors="white")
+        for sp in ax.spines.values():
+            sp.set_color("white")
+    ax1.bar(["Stock", "LoS"], [oh, th], color=["#777777", "#E11D48"])
+    ax2.bar(["Stock", "LoS"], [ot, tt], color=["#777777", "#E11D48"])
+    ax1.set_ylim(0, ymax)
+    ax2.set_ylim(0, ymax)
+    for i, v in enumerate([oh, th]):
+        ax1.text(i, v * 1.02, f"{v} hp", ha="center", color="white")
+    for i, v in enumerate([ot, tt]):
+        ax2.text(i, v * 1.02, f"{v} Nm", ha="center", color="white")
+    ax1.text(0.5, -0.15, f"{_t['difference']} +{th - oh} hp", transform=ax1.transAxes, ha="center", color="white")
+    ax2.text(0.5, -0.15, f"{_t['difference']} +{tt - ot} Nm", transform=ax2.transAxes, ha="center", color="white")
+    ax1.set_title("HP", color="white")
+    ax2.set_title("Torque", color="white")
     st.pyplot(fig)
     st.markdown(f"> *{_t['chart_note']}*")
-    buf=io.BytesIO();fig.savefig(buf,format="png",dpi=150);buf.seek(0)
-    chart_bytes=buf.read();plt.close(fig)
+    buf = io.BytesIO()
+    fig.savefig(buf, format="png", dpi=150)
+    buf.seek(0)
+    chart_bytes = buf.read()
+    plt.close(fig)
 except Exception as e:
     st.warning(f"Chart error: {e}")
 
