@@ -221,9 +221,9 @@ if not name:st.error(_t["error_name"]);st.stop()
 if "@" not in email_addr:st.error(_t["error_email"]);st.stop()
 
 # Telegram
-cfg=st.secrets.get("telegram",{})
+cfg = st.secrets.get("telegram", {})
 if cfg.get("token") and cfg.get("chat_id"):
-    tele=textwrap.dedent(f"""
+    tele = textwrap.dedent(f"""
 Brand: {brand}
 Model: {model}
 Generation: {gen}
@@ -237,12 +237,26 @@ Message: {message}
 """
     )
     try:
-        requests.post(f"https://api.telegram.org/bot{cfg['token']}/sendMessage",data={"chat_id":cfg['chat_id'],"text":tele})
+        # Send text message
+        resp_msg = requests.post(
+            f"https://api.telegram.org/bot{cfg['token']}/sendMessage",
+            data={"chat_id": cfg['chat_id'], "text": tele}
+        )
+        if not resp_msg.ok:
+            st.warning(f"Telegram API error (message): {resp_msg.status_code} {resp_msg.text}")
+        # Send document if provided
         if uploaded_file:
-            requests.post(f"https://api.telegram.org/bot{cfg['token']}/sendDocument",data={"chat_id":cfg['chat_id']},files={"document":(uploaded_file.name,uploaded_file.getvalue(),uploaded_file.type or "application/octet-stream")})
+            resp_doc = requests.post(
+                f"https://api.telegram.org/bot{cfg['token']}/sendDocument",
+                data={"chat_id": cfg['chat_id']},
+                files={"document": (uploaded_file.name, uploaded_file.getvalue(), uploaded_file.type or "application/octet-stream")}
+            )
+            if not resp_doc.ok:
+                st.warning(f"Telegram API error (document): {resp_doc.status_code} {resp_doc.text}")
     except Exception as e:
         st.warning(f"Telegram error: {e}")
-
+else:
+    st.warning("Telegram credentials are not set in secrets")
 # Email
 if send_copy:
     try:
