@@ -259,8 +259,6 @@ Message: {message}
 else:
     st.warning("Telegram credentials are not set in secrets")
 # Email
-    st.warning("Telegram credentials are not set in secrets")
-# Email
 if send_copy:
     try:
         smtp_cfg = st.secrets.get("smtp", {})
@@ -275,15 +273,16 @@ Name: {name}
 Email: {email_addr}
 VIN: {vin}
 Message: {message}
-""")
-        # Create PDF
+"""
+        )
+        # Create PDF with chart and note below
         pdf = FPDF()
         pdf.add_page()
-        pdf.add_font('DejaVu','', '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', uni=True)
+        pdf.add_font('DejaVu', '', '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', uni=True)
         pdf.set_font('DejaVu', size=12)
         # Write selection text
         for ln in mail.split("
-"): pdf.cell(0, 8, ln, ln=True):
+"):
             pdf.cell(0, 8, ln, ln=True)
         # Embed chart image
         if chart_bytes:
@@ -296,10 +295,10 @@ Message: {message}
         for note_line in _t['chart_note'].split("
 "):
             pdf.multi_cell(0, 6, note_line)
-        # Output PDF to file
+        # Output PDF file
         tmp_pdf = tempfile.NamedTemporaryFile(delete=False, suffix='.pdf')
         pdf.output(tmp_pdf.name)
-        # Prepare email
+        # Prepare email message
         msg = email.message.EmailMessage()
         msg["Subject"] = "Your Level of Speed Report"
         msg["From"] = smtp_cfg.get("sender_email")
@@ -308,7 +307,7 @@ Message: {message}
         if attach_pdf:
             with open(tmp_pdf.name, "rb") as f:
                 msg.add_attachment(f.read(), maintype="application", subtype="pdf", filename="report.pdf")
-        # Connect and send
+        # Send email via SMTP
         if smtp_cfg.get("port") == 465:
             srv = smtplib.SMTP_SSL(smtp_cfg.get("server"), smtp_cfg.get("port"))
         else:
@@ -325,4 +324,5 @@ for k in ["name","email","vin","message","uploaded_file","attach_pdf","send_copy
     st.session_state.pop(k,None)
 st.success(_t["success"])
 # Prevent re-submit crash
+st.stop()
 st.stop()
