@@ -197,4 +197,4 @@ try:
     ax1.set_title("HP", color="white")
     ax2.set_title("Torque", color="white")
     st.pyplot(fig)
-    st.markdown(f"> *{_t['chart_note']}*
+    st.markdown(f"> *{_t['chart_note']}*")
