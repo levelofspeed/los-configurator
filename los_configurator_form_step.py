@@ -263,8 +263,8 @@ else:
 # Email
 if send_copy:
     try:
-        smtp_cfg=st.secrets.get("smtp",{})
-        mail=textwrap.dedent(f"""
+        smtp_cfg = st.secrets.get("smtp", {})
+        mail = textwrap.dedent(f"""
 Brand: {brand}
 Model: {model}
 Generation: {gen}
@@ -275,32 +275,50 @@ Name: {name}
 Email: {email_addr}
 VIN: {vin}
 Message: {message}
-"""
-        )
-        pdf=FPDF()
+""")
+        # Create PDF
+        pdf = FPDF()
         pdf.add_page()
-        pdf.add_font('DejaVu','', '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf',uni=True)
-        pdf.set_font('DejaVu',size=12)
-        for ln in mail.split("\n"):pdf.cell(0,8,ln,ln=True)
-        pdf.ln(4)
-        for ln in _t['chart_note'].split("\n"):pdf.multi_cell(0,6,ln)
+        pdf.add_font('DejaVu','', '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', uni=True)
+        pdf.set_font('DejaVu', size=12)
+        # Write selection text
+        for ln in mail.split("
+"):
+            pdf.cell(0, 8, ln, ln=True)
+        # Embed chart image
         if chart_bytes:
-            tmp_img=tempfile.NamedTemporaryFile(delete=False,suffix='.png')
-            tmp_img.write(chart_bytes);tmp_img.flush()
-            pdf.image(tmp_img.name,x=10,y=pdf.get_y(),w=pdf.w-20)
-        tmp_pdf=tempfile.NamedTemporaryFile(delete=False,suffix='.pdf')
+            tmp_img = tempfile.NamedTemporaryFile(delete=False, suffix='.png')
+            tmp_img.write(chart_bytes)
+            tmp_img.flush()
+            pdf.image(tmp_img.name, x=10, y=pdf.get_y()+4, w=pdf.w-20)
+        # Add space then note below chart
+        pdf.ln(6)
+        for note_line in _t['chart_note'].split("
+"):
+            pdf.multi_cell(0, 6, note_line)
+        # Output PDF to file
+        tmp_pdf = tempfile.NamedTemporaryFile(delete=False, suffix='.pdf')
         pdf.output(tmp_pdf.name)
-        msg=email.message.EmailMessage()
-        msg["Subject"]="Your Level of Speed Report"
-        msg["From"]=smtp_cfg.get("sender_email")
-        msg["To"]=email_addr
+        # Prepare email
+        msg = email.message.EmailMessage()
+        msg["Subject"] = "Your Level of Speed Report"
+        msg["From"] = smtp_cfg.get("sender_email")
+        msg["To"] = email_addr
         msg.set_content(mail)
-        if attach_pdf:msg.add_attachment(open(tmp_pdf.name,'rb').read(),maintype='application',subtype='pdf',filename='report.pdf')
-        if smtp_cfg.get("port")==465:srv=smtplib.SMTP_SSL(smtp_cfg.get("server"),smtp_cfg.get("port"))
-        else:srv=smtplib.SMTP(smtp_cfg.get("server"),smtp_cfg.get("port"));srv.starttls()
-        srv.login(smtp_cfg.get("username"),smtp_cfg.get("password"))
-        srv.send_message(msg);srv.quit()
-    except Exception as e:st.warning(f"Email error: {e}")
+        if attach_pdf:
+            with open(tmp_pdf.name, "rb") as f:
+                msg.add_attachment(f.read(), maintype="application", subtype="pdf", filename="report.pdf")
+        # Connect and send
+        if smtp_cfg.get("port") == 465:
+            srv = smtplib.SMTP_SSL(smtp_cfg.get("server"), smtp_cfg.get("port"))
+        else:
+            srv = smtplib.SMTP(smtp_cfg.get("server"), smtp_cfg.get("port"))
+            srv.starttls()
+        srv.login(smtp_cfg.get("username"), smtp_cfg.get("password"))
+        srv.send_message(msg)
+        srv.quit()
+    except Exception as e:
+        st.warning(f"Email error: {e}")
 
 # Clear state and success
 for k in ["name","email","vin","message","uploaded_file","attach_pdf","send_copy"]:
