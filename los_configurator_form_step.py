@@ -280,7 +280,7 @@ Message: {message}
         pdf.add_page()
         pdf.add_font('DejaVu', '', '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', uni=True)
         pdf.set_font('DejaVu', size=12)
-        # Write selection text
+                # Write selection text
         for ln in mail.split("
 "):
             pdf.cell(0, 8, ln, ln=True)
