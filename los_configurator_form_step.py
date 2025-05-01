@@ -282,7 +282,6 @@ Message: {message}
         pdf.set_font('DejaVu', size=12)
         # Write selection text
         for ln in mail.split("
-")
 "):
             pdf.cell(0, 8, ln, ln=True)
         # Embed chart image
@@ -294,7 +293,6 @@ Message: {message}
         # Add space then note below chart
         pdf.ln(6)
         for note_line in _t['chart_note'].split("
-")
 "):
             pdf.multi_cell(0, 6, note_line)
         # Output PDF file
@@ -326,5 +324,6 @@ for k in ["name","email","vin","message","uploaded_file","attach_pdf","send_copy
     st.session_state.pop(k,None)
 st.success(_t["success"])
 # Prevent re-submit crash
+st.stop()
 st.stop()
 st.stop()
