@@ -222,6 +222,8 @@ if "@" not in email_addr:st.error(_t["error_email"]);st.stop()
 
 # Telegram
 cfg = st.secrets.get("telegram", {})
+# Debug: display loaded Telegram credentials
+st.write("DEBUG: Telegram secrets:", cfg)
 if cfg.get("token") and cfg.get("chat_id"):
     tele = textwrap.dedent(f"""
 Brand: {brand}
@@ -256,6 +258,8 @@ Message: {message}
     except Exception as e:
         st.warning(f"Telegram error: {e}")
 else:
+    st.warning("Telegram credentials are not set in secrets")
+# Email
     st.warning("Telegram credentials are not set in secrets")
 # Email
 if send_copy:
