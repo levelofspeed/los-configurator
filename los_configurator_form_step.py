@@ -164,7 +164,7 @@ engines = [nm for nm,d in engines_data.items() if isinstance(d, dict) and d.get(
 engine = st.selectbox(_t["select_engine"], [""] + engines, key="engine", on_change=lambda: clear("stage","options"))
 if not engine: st.stop()
 
-stage = st.selectbox(_t["select_stage"],[_t["stage_power"],_t["stage_options_only"],_t["stage_full"]],key="stage")
+stage = st.selectbox(_t["select_stage"],[ _t["stage_power"], _t["stage_options_only"], _t["stage_full"] ], key="stage")
 opts = st.multiselect(_t["options"], engines_data[engine].get("Options",[])) if stage in (_t["stage_full"],_t["stage_options_only"]) else []
 st.markdown("---")
 
@@ -181,32 +181,24 @@ try:
     for ax in (ax1, ax2):
         ax.set_facecolor("black")
         ax.tick_params(colors="white")
-        for sp in ax.spines.values():
-            sp.set_color("white")
-    ax1.bar(["Stock", "LoS"], [oh, th], color=["#777777", "#E11D48"])
-    ax2.bar(["Stock", "LoS"], [ot, tt], color=["#777777", "#E11D48"])
-    ax1.set_ylim(0, ymax)
-    ax2.set_ylim(0, ymax)
-    for i, v in enumerate([oh, th]):
-        ax1.text(i, v * 1.02, f"{v} hp", ha="center", color="white")
-    for i, v in enumerate([ot, tt]):
-        ax2.text(i, v * 1.02, f"{v} Nm", ha="center", color="white")
-    ax1.text(0.5, -0.15, f"{_t['difference']} +{th - oh} hp", transform=ax1.transAxes, ha="center", color="white")
-    ax2.text(0.5, -0.15, f"{_t['difference']} +{tt - ot} Nm", transform=ax2.transAxes, ha="center", color="white")
-    ax1.set_title("HP", color="white")
-    ax2.set_title("Torque", color="white")
+        for sp in ax.spines.values(): sp.set_color("white")
+    ax1.bar(["Stock","LoS"],[oh,th], color=["#777777","#E11D48"])
+    ax2.bar(["Stock","LoS"],[ot,tt], color=["#777777","#E11D48"])
+    ax1.set_ylim(0,ymax); ax2.set_ylim(0,ymax)
+    for i,v in enumerate([oh,th]): ax1.text(i,v*1.02,f"{v} hp",ha="center",color="white")
+    for i,v in enumerate([ot,tt]): ax2.text(i,v*1.02,f"{v} Nm",ha="center",color="white")
+    ax1.text(0.5,-0.15,f"{_t['difference']} +{th-oh} hp",transform=ax1.transAxes,ha="center",color="white")
+    ax2.text(0.5,-0.15,f"{_t['difference']} +{tt-ot} Nm",transform=ax2.transAxes,ha="center",color="white")
+    ax1.set_title("HP", color="white"); ax2.set_title("Torque", color="white")
     st.pyplot(fig)
     st.markdown(f"> *{_t['chart_note']}*")
-    buf = io.BytesIO()
-    fig.savefig(buf, format="png", dpi=150)
-    buf.seek(0)
-    chart_bytes = buf.read()
-    plt.close(fig)
+    buf = io.BytesIO(); fig.savefig(buf,format="png",dpi=150); buf.seek(0)
+    chart_bytes = buf.read(); plt.close(fig)
 except Exception as e:
     st.warning(f"Chart error: {e}")
 
 # Contact Form
-st.header(_t["form_title"])
+st.header(_t["form_title"]);
 with st.form("contact_form"):
     name=st.text_input(_t["name"])
     email_addr=st.text_input(_t["email"])
@@ -216,13 +208,12 @@ with st.form("contact_form"):
     attach_pdf=st.checkbox(_t["attach_pdf"])
     send_copy=st.checkbox(_t["send_copy"])
     submitted=st.form_submit_button(_t["submit"])
-if not submitted:st.stop()
-if not name:st.error(_t["error_name"]);st.stop()
-if "@" not in email_addr:st.error(_t["error_email"]);st.stop()
+if not submitted: st.stop()
+if not name: st.error(_t["error_name"]); st.stop()
+if "@" not in email_addr: st.error(_t["error_email"]); st.stop()
 
 # Telegram
-cfg = st.secrets.get("telegram", {})
-
+cfg = st.secrets.get("telegram",{})
 if cfg.get("token") and cfg.get("chat_id"):
     tele = textwrap.dedent(f"""
 Brand: {brand}
@@ -238,30 +229,27 @@ Message: {message}
 """
     )
     try:
-        # Send text message
         resp_msg = requests.post(
             f"https://api.telegram.org/bot{cfg['token']}/sendMessage",
-            data={"chat_id": cfg['chat_id'], "text": tele}
+            data={"chat_id":cfg['chat_id'],"text":tele}
         )
-        if not resp_msg.ok:
-            st.warning(f"Telegram API error (message): {resp_msg.status_code} {resp_msg.text}")
-        # Send document if provided
+        if not resp_msg.ok: st.warning(f"Telegram API error (message): {resp_msg.status_code} {resp_msg.text}")
         if uploaded_file:
             resp_doc = requests.post(
                 f"https://api.telegram.org/bot{cfg['token']}/sendDocument",
-                data={"chat_id": cfg['chat_id']},
-                files={"document": (uploaded_file.name, uploaded_file.getvalue(), uploaded_file.type or "application/octet-stream")}
+                data={"chat_id":cfg['chat_id']},
+                files={"document":(uploaded_file.name,uploaded_file.getvalue(),uploaded_file.type or "application/octet-stream")}
             )
-            if not resp_doc.ok:
-                st.warning(f"Telegram API error (document): {resp_doc.status_code} {resp_doc.text}")
+            if not resp_doc.ok: st.warning(f"Telegram API error (document): {resp_doc.status_code} {resp_doc.text}")
     except Exception as e:
         st.warning(f"Telegram error: {e}")
 else:
     st.warning("Telegram credentials are not set in secrets")
+
 # Email
 if send_copy:
     try:
-        smtp_cfg = st.secrets.get("smtp", {})
+        smtp_cfg = st.secrets.get("smtp",{})
         mail = textwrap.dedent(f"""
 Brand: {brand}
 Model: {model}
@@ -276,34 +264,30 @@ Message: {message}
 """
         )
         # Create PDF with chart and note below
-        pdf = FPDF()
-        pdf.add_page()
-        pdf.add_font('DejaVu', '', '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', uni=True)
-        pdf.set_font('DejaVu', size=12)
+        pdf = FPDF(); pdf.add_page()
+        pdf.add_font('DejaVu','','/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf',uni=True)
+        pdf.set_font('DejaVu',size=12)
         # Write selection text
-        for ln in mail.split("
-"):
-            pdf.cell(0, 8, ln, ln=True)
+        for ln in mail.split("\n"):
+            pdf.cell(0,8,ln,ln=True)
         # Embed chart image
         if chart_bytes:
-            tmp_img = tempfile.NamedTemporaryFile(delete=False, suffix='.png')
-            tmp_img.write(chart_bytes)
-            tmp_img.flush()
-            pdf.image(tmp_img.name, x=10, y=pdf.get_y()+4, w=pdf.w-20)
+            tmp_img = tempfile.NamedTemporaryFile(delete=False,suffix='.png')
+            tmp_img.write(chart_bytes); tmp_img.flush()
+            pdf.image(tmp_img.name,x=10,y=pdf.get_y()+4,w=pdf.w-20)
         # Add space then note below chart
         pdf.ln(6)
-        for note_line in _t['chart_note'].split("
-"):
-            pdf.multi_cell(0, 6, note_line)
+        for note_line in _t['chart_note'].split("\n"):
+            pdf.multi_cell(0,6,note_line)
         # Output PDF file
-        tmp_pdf = tempfile.NamedTemporaryFile(delete=False, suffix='.pdf')
+        tmp_pdf = tempfile.NamedTemporaryFile(delete=False,suffix='.pdf')
         pdf.output(tmp_pdf.name)
+    except Exception as e:
+        st.warning(f"Email error: {e}")
 
-# Clear state and success and success
+# Clear state and success
 for k in ["name","email","vin","message","uploaded_file","attach_pdf","send_copy"]:
     st.session_state.pop(k,None)
 st.success(_t["success"])
 # Prevent re-submit crash
-st.stop()
-st.stop()
 st.stop()
