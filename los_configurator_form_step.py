@@ -222,8 +222,7 @@ if "@" not in email_addr:st.error(_t["error_email"]);st.stop()
 
 # Telegram
 cfg = st.secrets.get("telegram", {})
-# Debug: display loaded Telegram credentials
-st.write("DEBUG: Telegram secrets:", cfg)
+
 if cfg.get("token") and cfg.get("chat_id"):
     tele = textwrap.dedent(f"""
 Brand: {brand}
