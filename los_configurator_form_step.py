@@ -6,14 +6,15 @@ import io
 import textwrap
 import requests
 import smtplib
-from email.message import EmailMessage
+import email.message
+import tempfile
 from collections import UserDict
 from fpdf import FPDF
 
-# Page Config
+# ---------------- Page Config -----------------
 st.set_page_config(page_title="Level of Speed Configurator", layout="wide")
 
-# Translations
+# ---------------- Translations ----------------
 languages = {"en": "English", "ru": "Русский", "de": "Deutsch"}
 translations = {
     "en": {
@@ -41,10 +42,11 @@ translations = {
         "error_email": "Please enter a valid email",
         "difference": "Difference",
         "chart_note": (
-            "Please note that all displayed values of power and torque gains are approximate and may vary "
-            "depending on many factors, including fuel quality and the current condition of the vehicle. "
-            "Level of Speed recommends taking these into account when evaluating results. By confirming receipt of the report, "
-            "you agree that you have read this information."
+            "Please note that all displayed values of power and torque gains "
+            "are approximate and may vary depending on many factors, including "
+            "fuel quality and the current condition of the vehicle. Level of "
+            "Speed recommends taking these into account when evaluating results. "
+            "By confirming receipt of the report, you agree that you have read this information."
         )
     },
     "ru": {
@@ -72,10 +74,12 @@ translations = {
         "error_email": "Введите корректный email",
         "difference": "Разница",
         "chart_note": (
-            "Обращаем ваше внимание, что все отображаемые значения прироста мощности и крутящего момента являются ориентировочными "
-            "и могут варьироваться в зависимости от множества факторов, включая качество топлива и текущее состояние автомобиля. "
-            "Компания Level of Speed рекомендует учитывать эти условия при оценке результатов. Подтверждая получение отчёта, "
-            "вы соглашаетесь с тем, что ознакомились с данной информацией."
+            "Обращаем ваше внимание, что все отображаемые значения прироста мощности "
+            "и крутящего момента являются ориентировочными и могут варьироваться "
+            "в зависимости от множества факторов, включая качество топлива и текущее "
+            "состояние автомобиля. Компания Level of Speed рекомендует учитывать эти "
+            "условия при оценке результатов. Подтверждая получение отчёта, вы соглашаетесь "
+            "с тем, что ознакомились с данной информацией."
         )
     },
     "de": {
@@ -103,186 +107,204 @@ translations = {
         "error_email": "Bitte gültige E-Mail eingeben",
         "difference": "Differenz",
         "chart_note": (
-            "Bitte beachten Sie, dass alle angezeigten Werte für Leistungs- und Drehmomentsteigerung Richtwerte sind "
-            "und je nach verschiedenen Faktoren wie Kraftstoffqualität und dem aktuellen Zustand des Fahrzeugs variieren können. "
-            "Level of Speed empfiehlt, diese Bedingungen bei der Beurteilung der Ergebnisse zu berücksichtigen. "
-            "Mit der Bestätigung des Erhalts des Berichts erklären Sie sich damit einverstanden, diese Informationen gelesen zu haben."
+            "Bitte beachten Sie, dass alle angezeigten Werte für Leistungs- und Drehmomentsteigerung "
+            "Richtwerte sind und je nach verschiedenen Faktoren wie Kraftstoffqualität und dem aktuellen "
+            "Zustand des Fahrzeugs variieren können. Level of Speed empfiehlt, diese Bedingungen bei der "
+            "Beurteilung der Ergebnisse zu berücksichtigen. Mit der Bestätigung des Erhalts des Berichts "
+            "erklären Sie sich damit einverstanden, diese Informationen gelesen zu haben."
         )
     }
 }
 
-class _T(UserDict):(UserDict):
+class _T(UserDict):
     def __missing__(self, key):
         return key
 
-# Language Selector
-_, col_lang = st.columns([10,2])
+# Header & Language Selector
+_, col_lang = st.columns([10, 2])
 with col_lang:
     lang = st.selectbox("", list(languages.keys()), format_func=lambda x: languages[x], label_visibility="collapsed")
 _t = _T(translations.get(lang, translations["en"]))
 
 # Logo & Title
-logo = next((p for p in ("logo.png","logo_white.png") if os.path.exists(p)), None)
+logo = next((p for p in ("logo.png", "logo_white.png") if os.path.exists(p)), None)
 if logo:
-    _, col, _ = st.columns([1,4,1])
-    col.image(logo, width=160)
+    _, c, _ = st.columns([1, 4, 1])
+    c.image(logo, width=160)
 st.title("Level of Speed Configurator 🚘")
 
-# Load Database
+# Load DB and prune empty
 @st.cache_data
 def load_db():
-    with open(os.path.join("data","full_database.json"), encoding="utf-8") as f:
+    with open(os.path.join("data", "full_database.json"), encoding="utf-8") as f:
         return json.load(f)
 
 def prune(node):
     if isinstance(node, dict):
-        return {k: prune(v) for k, v in node.items() if v not in (None, [], {}, "")}
+        return {k: prune(v) for k, v in node.items() if v not in (None, {}, [], "")}  
     return node
 
 db = prune(load_db())
 clear = lambda *keys: [st.session_state.pop(k, None) for k in keys]
 
-# User Selections
-brand = st.selectbox(_t["select_brand"], [""] + sorted(db), key="brand", on_change=lambda: clear("model","generation","fuel","engine","stage","options"))
+# Selection Flow
+brand = st.selectbox(_t["select_brand"], [""] + sorted(db.keys()), key="brand", on_change=lambda: clear("model","generation","fuel","engine","stage","options"))
 if not brand: st.stop()
-model = st.selectbox(_t["select_model"], [""] + sorted(db[brand]), key="model", on_change=lambda: clear("generation","fuel","engine","stage","options"))
+model = st.selectbox(_t["select_model"], [""] + sorted(db[brand].keys()), key="model", on_change=lambda: clear("generation","fuel","engine","stage","options"))
 if not model: st.stop()
-generation = st.selectbox(_t["select_generation"], [""] + sorted(db[brand][model]), key="generation", on_change=lambda: clear("fuel","engine","stage","options"))
-if not generation: st.stop()
+gen = st.selectbox(_t["select_generation"], [""] + sorted(db[brand][model].keys()), key="generation", on_change=lambda: clear("fuel","engine","stage","options"))
+if not gen: st.stop()
 
-data_node = db[brand][model][generation]
-
-fuels = sorted({info.get("Type") for info in data_node.values() if isinstance(info, dict)})
+engines_data = db[brand][model][gen]
+fuels = sorted({d.get("Type") for d in engines_data.values() if isinstance(d, dict)})
 fuel = st.selectbox(_t["select_fuel"], [""] + fuels, key="fuel", on_change=lambda: clear("engine","stage","options"))
 if not fuel: st.stop()
 
-engines = [k for k, info in data_node.items() if isinstance(info, dict) and info.get("Type")==fuel]
+engines = [nm for nm,d in engines_data.items() if isinstance(d, dict) and d.get("Type")==fuel]
 engine = st.selectbox(_t["select_engine"], [""] + engines, key="engine", on_change=lambda: clear("stage","options"))
 if not engine: st.stop()
 
-stage = st.selectbox(_t["select_stage"],[_t["stage_power"],_t["stage_options_only"],_t["stage_full"]], key="stage")
-opts = []
-if stage in (_t["stage_full"], _t["stage_options_only"]):
-    opts = st.multiselect(_t["options"], data_node[engine].get("Options", []), key="options")
+stage = st.selectbox(_t["select_stage"],[_t["stage_power"],_t["stage_options_only"],_t["stage_full"]],key="stage")
+opts = st.multiselect(_t["options"], engines_data[engine].get("Options",[])) if stage in (_t["stage_full"],_t["stage_options_only"]) else []
 st.markdown("---")
 
-# Chart Rendering
-def render_chart():
-    rec = data_node[engine]
-    orig_hp = rec.get("Original HP",0)
-    tuned_hp= rec.get("Tuned HP",0)
-    orig_tq = rec.get("Original Torque",0)
-    tuned_tq= rec.get("Tuned Torque",0)
-    ymax = max(orig_hp,tuned_hp,orig_tq,tuned_tq)*1.2 if any([orig_hp,tuned_hp,orig_tq,tuned_tq]) else 1
-
-    fig,axes=plt.subplots(1,2,figsize=(10,4),facecolor='black')
-    for ax in axes:
-        ax.set_facecolor('black')
-        ax.tick_params(colors='white')
-        for spine in ax.spines.values(): spine.set_color('white')
-
-    axes[0].bar(['Stock','LoS'],[orig_hp,tuned_hp],color=['#777','#E11D48'])
-    axes[1].bar(['Stock','LoS'],[orig_tq,tuned_tq],color=['#777','#E11D48'])
-    for ax in axes: ax.set_ylim(0,ymax)
-    for i,v in enumerate([orig_hp,tuned_hp]): axes[0].text(i,v*1.02,f"{v} hp",ha='center',color='white')
-    for i,v in enumerate([orig_tq,tuned_tq]): axes[1].text(i,v*1.02,f"{v} Nm",ha='center',color='white')
-    axes[0].text(0.5,-0.15,f"{_t['difference']} +{tuned_hp-orig_hp} hp",transform=axes[0].transAxes,ha='center',color='white')
-    axes[1].text(0.5,-0.15,f"{_t['difference']} +{tuned_tq-orig_tq} Nm",transform=axes[1].transAxes,ha='center',color='white')
-    axes[0].set_title('HP',color='white'); axes[1].set_title('Torque',color='white')
+# Chart Generation
+chart_bytes = None
+try:
+    rec = engines_data[engine]
+    oh = rec["Original HP"]
+    th = rec["Tuned HP"]
+    ot = rec["Original Torque"]
+    tt = rec["Tuned Torque"]
+    ymax = max(oh, th, ot, tt) * 1.2
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 4), facecolor="black")
+    for ax in (ax1, ax2):
+        ax.set_facecolor("black")
+        ax.tick_params(colors="white")
+        for sp in ax.spines.values():
+            sp.set_color("white")
+    ax1.bar(["Stock", "LoS"], [oh, th], color=["#777777", "#E11D48"])
+    ax2.bar(["Stock", "LoS"], [ot, tt], color=["#777777", "#E11D48"])
+    ax1.set_ylim(0, ymax)
+    ax2.set_ylim(0, ymax)
+    for i, v in enumerate([oh, th]):
+        ax1.text(i, v * 1.02, f"{v} hp", ha="center", color="white")
+    for i, v in enumerate([ot, tt]):
+        ax2.text(i, v * 1.02, f"{v} Nm", ha="center", color="white")
+    ax1.text(0.5, -0.15, f"{_t['difference']} +{th - oh} hp", transform=ax1.transAxes, ha="center", color="white")
+    ax2.text(0.5, -0.15, f"{_t['difference']} +{tt - ot} Nm", transform=ax2.transAxes, ha="center", color="white")
+    ax1.set_title("HP", color="white")
+    ax2.set_title("Torque", color="white")
     st.pyplot(fig)
-    st.markdown(f"> *{_t['chart_note']}*",unsafe_allow_html=True)
-    buf=io.BytesIO();fig.savefig(buf,format='png',dpi=150);buf.seek(0)
-    png_bytes=buf.read();plt.close(fig)
-    return png_bytes
-
-chart_bytes=None
-try: chart_bytes=render_chart()
-except Exception as e: st.warning(f"Chart error: {e}")
+    st.markdown(f"> *{_t['chart_note']}*")
+    buf = io.BytesIO()
+    fig.savefig(buf, format="png", dpi=150)
+    buf.seek(0)
+    chart_bytes = buf.read()
+    plt.close(fig)
+except Exception as e:
+    st.warning(f"Chart error: {e}")
 
 # Contact Form
-with st.form('contact_form'):
-    name = st.text_input(_t['name'], key='name')
-    email_addr = st.text_input(_t['email'], key='email')
-    vin = st.text_input(_t['vin'], key='vin')
-    msg = st.text_area(_t['message'], height=120, key='message')
-    uploaded_file = st.file_uploader(_t['upload_file'], type=['txt','pdf','jpg','png','rar','zip'], key='file')
-    attach_pdf = st.checkbox(_t['attach_pdf'], key='attach_pdf')
-    send_copy = st.checkbox(_t['send_copy'], key='send_copy')
-    submitted = st.form_submit_button(_t['submit'])
+st.header(_t["form_title"])
+with st.form("contact_form"):
+    name=st.text_input(_t["name"])
+    email_addr=st.text_input(_t["email"])
+    vin=st.text_input(_t["vin"])
+    message=st.text_area(_t["message"],height=120)
+    uploaded_file=st.file_uploader(_t["upload_file"],type=["txt","pdf","jpg","png","rar","zip"])
+    attach_pdf=st.checkbox(_t["attach_pdf"])
+    send_copy=st.checkbox(_t["send_copy"])
+    submitted=st.form_submit_button(_t["submit"])
+if not submitted:st.stop()
+if not name:st.error(_t["error_name"]);st.stop()
+if "@" not in email_addr:st.error(_t["error_email"]);st.stop()
 
-if not submitted: st.stop()
-if not name: st.error(_t['error_name']); st.stop()
-if '@' not in email_addr: st.error(_t['error_email']); st.stop()
+# Telegram
+cfg = st.secrets.get("telegram", {})
 
-# Submission
-try:
-    # Telegram
-    tg_cfg = st.secrets.get('telegram', {})
-    if tg_cfg.get('token') and tg_cfg.get('chat_id'):
-        telegram_text = textwrap.dedent(f"""
+if cfg.get("token") and cfg.get("chat_id"):
+    tele = textwrap.dedent(f"""
 Brand: {brand}
 Model: {model}
-Generation: {generation}
+Generation: {gen}
 Engine: {engine}
 Stage: {stage}
 Options: {', '.join(opts) or '-'}
 Name: {name}
 Email: {email_addr}
 VIN: {vin}
-Message: {msg}
+Message: {message}
 """
+    )
+    try:
+        # Send text message
+        resp_msg = requests.post(
+            f"https://api.telegram.org/bot{cfg['token']}/sendMessage",
+            data={"chat_id": cfg['chat_id'], "text": tele}
         )
-        resp = requests.post(
-            f"https://api.telegram.org/bot{tg_cfg['token']}/sendMessage",
-            data={'chat_id':tg_cfg['chat_id'],'text':telegram_text}
-        )
-        if not resp.ok: st.warning(f"Telegram error: {resp.text}")
+        if not resp_msg.ok:
+            st.warning(f"Telegram API error (message): {resp_msg.status_code} {resp_msg.text}")
+        # Send document if provided
         if uploaded_file:
-            resp2 = requests.post(
-                f"https://api.telegram.org/bot{tg_cfg['token']}/sendDocument",
-                data={'chat_id':tg_cfg['chat_id']},
-                files={'document':(uploaded_file.name,uploaded_file.getvalue(),uploaded_file.type)}
+            resp_doc = requests.post(
+                f"https://api.telegram.org/bot{cfg['token']}/sendDocument",
+                data={"chat_id": cfg['chat_id']},
+                files={"document": (uploaded_file.name, uploaded_file.getvalue(), uploaded_file.type or "application/octet-stream")}
             )
-            if not resp2.ok: st.warning(f"Telegram document error: {resp2.text}")
-    else:
-        st.warning("Telegram credentials not configured")
-
-    # Email with PDF
-    if send_copy and chart_bytes:
-        smtp_cfg = st.secrets.get('smtp', {})
-        msg_email = EmailMessage()
-        msg_email['Subject'] = 'Your Level of Speed Report'
-        msg_email['From'] = smtp_cfg.get('sender_email')
-        msg_email['To'] = email_addr
-        body = textwrap.dedent(f"""
+            if not resp_doc.ok:
+                st.warning(f"Telegram API error (document): {resp_doc.status_code} {resp_doc.text}")
+    except Exception as e:
+        st.warning(f"Telegram error: {e}")
+else:
+    st.warning("Telegram credentials are not set in secrets")
+# Email
+    st.warning("Telegram credentials are not set in secrets")
+# Email
+if send_copy:
+    try:
+        smtp_cfg=st.secrets.get("smtp",{})
+        mail=textwrap.dedent(f"""
 Brand: {brand}
 Model: {model}
-Generation: {generation}
+Generation: {gen}
 Engine: {engine}
 Stage: {stage}
 Options: {', '.join(opts) or '-'}
-
+Name: {name}
+Email: {email_addr}
+VIN: {vin}
+Message: {message}
 """
         )
-        msg_email.set_content(body)
-        # create PDF
-        pdf = FPDF(); pdf.set_auto_page_break(auto=True, margin=15)
-        pdf.add_page(); pdf.add_font('DejaVu', '', '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', uni=True)
-        pdf.set_font('DejaVu', size=12)
-        pdf.cell(0, 10, txt="Level of Speed Configuration Report", ln=True)
-        tmp_png = 'chart.png'
-        with open(tmp_png, 'wb') as f: f.write(chart_bytes)
-        pdf.image(tmp_png, x=10, y=pdf.get_y()+5, w=pdf.w-20)
-        pdf.ln(60)
-        note = _t['chart_note']
-        for ln in textwrap.wrap(note, 80): pdf.cell(0, 8, txt=ln, ln=True)
-        os.remove(tmp_png)
-        pdf_bytes = pdf.output(dest='S').encode('latin1')
-        msg_email.add_attachment(pdf_bytes, maintype='application', subtype='pdf', filename='report.pdf')
-        server = smtplib.SMTP(smtp_cfg.get('server'), smtp_cfg.get('port'))
-        server.starttls(); server.login(smtp_cfg.get('username'), smtp_cfg.get('password'))
-        server.send_message(msg_email); server.quit()
+        pdf=FPDF()
+        pdf.add_page()
+        pdf.add_font('DejaVu','', '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf',uni=True)
+        pdf.set_font('DejaVu',size=12)
+        for ln in mail.split("\n"):pdf.cell(0,8,ln,ln=True)
+        pdf.ln(4)
+        for ln in _t['chart_note'].split("\n"):pdf.multi_cell(0,6,ln)
+        if chart_bytes:
+            tmp_img=tempfile.NamedTemporaryFile(delete=False,suffix='.png')
+            tmp_img.write(chart_bytes);tmp_img.flush()
+            pdf.image(tmp_img.name,x=10,y=pdf.get_y(),w=pdf.w-20)
+        tmp_pdf=tempfile.NamedTemporaryFile(delete=False,suffix='.pdf')
+        pdf.output(tmp_pdf.name)
+        msg=email.message.EmailMessage()
+        msg["Subject"]="Your Level of Speed Report"
+        msg["From"]=smtp_cfg.get("sender_email")
+        msg["To"]=email_addr
+        msg.set_content(mail)
+        if attach_pdf:msg.add_attachment(open(tmp_pdf.name,'rb').read(),maintype='application',subtype='pdf',filename='report.pdf')
+        if smtp_cfg.get("port")==465:srv=smtplib.SMTP_SSL(smtp_cfg.get("server"),smtp_cfg.get("port"))
+        else:srv=smtplib.SMTP(smtp_cfg.get("server"),smtp_cfg.get("port"));srv.starttls()
+        srv.login(smtp_cfg.get("username"),smtp_cfg.get("password"))
+        srv.send_message(msg);srv.quit()
+    except Exception as e:st.warning(f"Email error: {e}")
 
-    st.success(_t['success'])
-except Exception as e:
-    st.error(f"Submission error: {e}")
+# Clear state and success
+for k in ["name","email","vin","message","uploaded_file","attach_pdf","send_copy"]:
+    st.session_state.pop(k,None)
+st.success(_t["success"])
+# Prevent re-submit crash
+st.stop()
