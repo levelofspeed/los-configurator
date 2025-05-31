@@ -438,7 +438,7 @@
             "StartStop Removal"
           ]
         },
-        "2.0 TDI CR 120 HP": {
+        "2.0 TDI CR 136 HP": {
           "Type": "Diesel",
           "Original HP": 136,
           "Tuned HP": 185,
@@ -599,9 +599,869 @@
           ]
         }
       },
-      "B9 - 2012 - 2015": {},
-      "B9 - 2015 - 2018": {},
-      "B9 - 2019 ->": {}
+      "B8 - 2012 - 2015": {
+		"1.4 TFSI 125 HP": {
+          "Type": "Petrol",
+          "Original HP": 125,
+          "Tuned HP": 145,
+          "Original Torque": 200,
+          "Tuned Torque": 250,
+          "Options": [
+            "VMax - speed limiter",
+            "LSU - lambda probe",
+            "EVAP - The ventilation system of the fuel tank",
+            "VSA - swirl flaps of collectors",
+            "SAP - second air",
+            "EGR - exhaust gas recirculation system",
+            "OPF - otto particulate filter",
+            "NOx - the oxygen sensor",
+            "PopBang",
+            "IMMO - immobilizer",
+            "DTC Removal - diagnostic trouble codes",
+            "StartStop Removal"
+          ]
+        },
+		"1.8 TFSI 120 HP": {
+          "Type": "Petrol",
+          "Original HP": 120,
+          "Tuned HP": 210,
+          "Original Torque": 230,
+          "Tuned Torque": 340,
+          "Options": [
+            "VMax - speed limiter",
+            "LSU - lambda probe",
+            "EVAP - The ventilation system of the fuel tank",
+            "VSA - swirl flaps of collectors",
+            "SAP - second air",
+            "EGR - exhaust gas recirculation system",
+            "OPF - otto particulate filter",
+            "NOx - the oxygen sensor",
+            "PopBang",
+            "IMMO - immobilizer",
+            "DTC Removal - diagnostic trouble codes",
+            "StartStop Removal"
+          ]
+        },
+        "1.8 TFSI 160 HP": {
+          "Type": "Petrol",
+          "Original HP": 160,
+          "Tuned HP": 210,
+          "Original Torque": 250,
+          "Tuned Torque": 340,
+          "Options": [
+            "VMax - speed limiter",
+            "LSU - lambda probe",
+            "EVAP - The ventilation system of the fuel tank",
+            "VSA - swirl flaps of collectors",
+            "SAP - second air",
+            "EGR - exhaust gas recirculation system",
+            "OPF - otto particulate filter",
+            "NOx - the oxygen sensor",
+            "PopBang",
+            "IMMO - immobilizer",
+            "DTC Removal - diagnostic trouble codes",
+            "StartStop Removal"
+          ]
+        },
+		"1.8 TFSI 170 HP": {
+          "Type": "Petrol",
+          "Original HP": 170,
+          "Tuned HP": 220,
+          "Original Torque": 320,
+          "Tuned Torque": 380,
+          "Options": [
+            "VMax - speed limiter",
+            "LSU - lambda probe",
+            "EVAP - The ventilation system of the fuel tank",
+            "VSA - swirl flaps of collectors",
+            "SAP - second air",
+            "EGR - exhaust gas recirculation system",
+            "OPF - otto particulate filter",
+            "NOx - the oxygen sensor",
+            "PopBang",
+            "IMMO - immobilizer",
+            "DTC Removal - diagnostic trouble codes",
+            "StartStop Removal"
+          ]
+        },
+        "2.0 TFSI 180 HP": {
+          "Type": "Petrol",
+          "Original HP": 180,
+          "Tuned HP": 260,
+          "Original Torque": 320,
+          "Tuned Torque": 400,
+          "Options": [
+            "VMax - speed limiter",
+            "LSU - lambda probe",
+            "EVAP - The ventilation system of the fuel tank",
+            "VSA - swirl flaps of collectors",
+            "SAP - second air",
+            "EGR - exhaust gas recirculation system",
+            "OPF - otto particulate filter",
+            "NOx - the oxygen sensor",
+            "PopBang",
+            "IMMO - immobilizer",
+            "DTC Removal - diagnostic trouble codes",
+            "StartStop Removal"
+          ]
+        },
+        "2.0 TFSI 211 HP": {
+          "Type": "Petrol",
+          "Original HP": 211,
+          "Tuned HP": 260,
+          "Original Torque": 350,
+          "Tuned Torque": 400,
+          "Options": [
+            "VMax - speed limiter",
+            "LSU - lambda probe",
+            "EVAP - The ventilation system of the fuel tank",
+            "VSA - swirl flaps of collectors",
+            "SAP - second air",
+            "EGR - exhaust gas recirculation system",
+            "OPF - otto particulate filter",
+            "NOx - the oxygen sensor",
+            "PopBang",
+            "IMMO - immobilizer",
+            "DTC Removal - diagnostic trouble codes",
+            "StartStop Removal"
+          ]
+        },
+        "2.0 TFSI 225 HP": {
+          "Type": "Petrol",
+          "Original HP": 225,
+          "Tuned HP": 300,
+          "Original Torque": 350,
+          "Tuned Torque": 450,
+          "Options": [
+            "VMax - speed limiter",
+            "LSU - lambda probe",
+            "EVAP - The ventilation system of the fuel tank",
+            "VSA - swirl flaps of collectors",
+            "SAP - second air",
+            "EGR - exhaust gas recirculation system",
+            "OPF - otto particulate filter",
+            "NOx - the oxygen sensor",
+            "PopBang",
+            "IMMO - immobilizer",
+            "DTC Removal - diagnostic trouble codes",
+            "StartStop Removal"
+          ]
+        },
+        "3.0 TFSI 272 HP": {
+          "Type": "Petrol",
+          "Original HP": 272,
+          "Tuned HP": 435,
+          "Original Torque": 400,
+          "Tuned Torque": 520,
+          "Options": [
+            "VMax - speed limiter",
+            "LSU - lambda probe",
+            "EVAP - The ventilation system of the fuel tank",
+            "VSA - swirl flaps of collectors",
+            "SAP - second air",
+            "EGR - exhaust gas recirculation system",
+            "OPF - otto particulate filter",
+            "NOx - the oxygen sensor",
+            "PopBang",
+            "IMMO - immobilizer",
+            "DTC Removal - diagnostic trouble codes",
+            "StartStop Removal"
+          ]
+        },
+        "2.0 TDI CR 120 HP": {
+          "Type": "Diesel",
+          "Original HP": 120,
+          "Tuned HP": 185,
+          "Original Torque": 290,
+          "Tuned Torque": 410,
+          "Options": [
+            "VMax - speed limiter",
+            "SCR - AdBlue system",
+            "EGR - exhaust gas recirculation system",
+            "DPF - diesel particulate filter",
+            "TVA - throttle flaps",
+            "VSA - swirl flaps of collectors",
+            "MAF - air flow meter",
+            "NOx - the oxygen sensor",
+            "IMMO - immobilizer",
+            "DTC Removal - diagnostic trouble codes",
+            "StartStop Removal"
+          ]
+        },
+        "2.0 TDI CR 136 HP": {
+          "Type": "Diesel",
+          "Original HP": 136,
+          "Tuned HP": 185,
+          "Original Torque": 320,
+          "Tuned Torque": 410,
+          "Options": [
+            "VMax - speed limiter",
+            "SCR - AdBlue system",
+            "EGR - exhaust gas recirculation system",
+            "DPF - diesel particulate filter",
+            "TVA - throttle flaps",
+            "VSA - swirl flaps of collectors",
+            "MAF - air flow meter",
+            "NOx - the oxygen sensor",
+            "IMMO - immobilizer",
+            "DTC Removal - diagnostic trouble codes",
+            "StartStop Removal"
+          ]
+        },
+        "2.0 TDI CR 143 HP": {
+          "Type": "Diesel",
+          "Original HP": 143,
+          "Tuned HP": 185,
+          "Original Torque": 320,
+          "Tuned Torque": 410,
+          "Options": [
+            "VMax - speed limiter",
+            "SCR - AdBlue system",
+            "EGR - exhaust gas recirculation system",
+            "DPF - diesel particulate filter",
+            "TVA - throttle flaps",
+            "VSA - swirl flaps of collectors",
+            "MAF - air flow meter",
+            "NOx - the oxygen sensor",
+            "IMMO - immobilizer",
+            "DTC Removal - diagnostic trouble codes",
+            "StartStop Removal"
+          ]
+        },
+		"2.0 TDI CR 150 HP": {
+          "Type": "Diesel",
+          "Original HP": 150,
+          "Tuned HP": 185,
+          "Original Torque": 320,
+          "Tuned Torque": 410,
+          "Options": [
+            "VMax - speed limiter",
+            "SCR - AdBlue system",
+            "EGR - exhaust gas recirculation system",
+            "DPF - diesel particulate filter",
+            "TVA - throttle flaps",
+            "VSA - swirl flaps of collectors",
+            "MAF - air flow meter",
+            "NOx - the oxygen sensor",
+            "IMMO - immobilizer",
+            "DTC Removal - diagnostic trouble codes",
+            "StartStop Removal"
+          ]
+        },
+        "2.0 TDI CR 163 HP": {
+          "Type": "Diesel",
+          "Original HP": 163,
+          "Tuned HP": 205,
+          "Original Torque": 350,
+          "Tuned Torque": 430,
+          "Options": [
+            "VMax - speed limiter",
+            "SCR - AdBlue system",
+            "EGR - exhaust gas recirculation system",
+            "DPF - diesel particulate filter",
+            "TVA - throttle flaps",
+            "VSA - swirl flaps of collectors",
+            "MAF - air flow meter",
+            "NOx - the oxygen sensor",
+            "IMMO - immobilizer",
+            "DTC Removal - diagnostic trouble codes",
+            "StartStop Removal"
+          ]
+        },
+        "2.0 TDI CR 177 HP": {
+          "Type": "Diesel",
+          "Original HP": 177,
+          "Tuned HP": 225,
+          "Original Torque": 380,
+          "Tuned Torque": 460,
+          "Options": [
+            "VMax - speed limiter",
+            "SCR - AdBlue system",
+            "EGR - exhaust gas recirculation system",
+            "DPF - diesel particulate filter",
+            "TVA - throttle flaps",
+            "VSA - swirl flaps of collectors",
+            "MAF - air flow meter",
+            "NOx - the oxygen sensor",
+            "IMMO - immobilizer",
+            "DTC Removal - diagnostic trouble codes",
+            "StartStop Removal"
+          ]
+        },
+		"2.0 TDI CR 190 HP": {
+          "Type": "Diesel",
+          "Original HP": 190,
+          "Tuned HP": 255,
+          "Original Torque": 400,
+          "Tuned Torque": 460,
+          "Options": [
+            "VMax - speed limiter",
+            "SCR - AdBlue system",
+            "EGR - exhaust gas recirculation system",
+            "DPF - diesel particulate filter",
+            "TVA - throttle flaps",
+            "VSA - swirl flaps of collectors",
+            "MAF - air flow meter",
+            "NOx - the oxygen sensor",
+            "IMMO - immobilizer",
+            "DTC Removal - diagnostic trouble codes",
+            "StartStop Removal"
+          ]
+        },
+        "3.0 V6 TDI FWD 204 HP": {
+          "Type": "Diesel",
+          "Original HP": 204,
+          "Tuned HP": 270,
+          "Original Torque": 400,
+          "Tuned Torque": 600,
+          "Options": [
+            "VMax - speed limiter",
+            "SCR - AdBlue system",
+            "EGR - exhaust gas recirculation system",
+            "DPF - diesel particulate filter",
+            "TVA - throttle flaps",
+            "VSA - swirl flaps of collectors",
+            "MAF - air flow meter",
+            "NOx - the oxygen sensor",
+            "IMMO - immobilizer",
+            "DTC Removal - diagnostic trouble codes",
+            "StartStop Removal"
+          ]
+        },
+        "3.0 V6 TDI 245 HP": {
+          "Type": "Diesel",
+          "Original HP": 245,
+          "Tuned HP": 300,
+          "Original Torque": 500,
+          "Tuned Torque": 650,
+          "Options": [
+            "VMax - speed limiter",
+            "SCR - AdBlue system",
+            "EGR - exhaust gas recirculation system",
+            "DPF - diesel particulate filter",
+            "TVA - throttle flaps",
+            "VSA - swirl flaps of collectors",
+            "MAF - air flow meter",
+            "NOx - the oxygen sensor",
+            "IMMO - immobilizer",
+            "DTC Removal - diagnostic trouble codes",
+            "StartStop Removal"
+          ]
+        }
+	  },
+      "B9 - 2015 - 2018": {
+		"1.4 TFSI 150 HP": {
+          "Type": "Petrol",
+          "Original HP": 150,
+          "Tuned HP": 250,
+          "Original Torque": 190,
+          "Tuned Torque": 330,
+          "Options": [
+            "VMax - speed limiter",
+            "LSU - lambda probe",
+            "EVAP - The ventilation system of the fuel tank",
+            "VSA - swirl flaps of collectors",
+            "SAP - second air",
+            "EGR - exhaust gas recirculation system",
+            "OPF - otto particulate filter",
+            "NOx - the oxygen sensor",
+            "PopBang",
+            "IMMO - immobilizer",
+            "DTC Removal - diagnostic trouble codes",
+            "StartStop Removal"
+          ]
+        },
+        "2.0 TFSI 150 HP": {
+          "Type": "Petrol",
+          "Original HP": 150,
+          "Tuned HP": 270,
+          "Original Torque": 245,
+          "Tuned Torque": 430,
+          "Options": [
+            "VMax - speed limiter",
+            "LSU - lambda probe",
+            "EVAP - The ventilation system of the fuel tank",
+            "VSA - swirl flaps of collectors",
+            "SAP - second air",
+            "EGR - exhaust gas recirculation system",
+            "OPF - otto particulate filter",
+            "NOx - the oxygen sensor",
+            "PopBang",
+            "IMMO - immobilizer",
+            "DTC Removal - diagnostic trouble codes",
+            "StartStop Removal"
+          ]
+        },
+        "2.0 TFSI 190 HP": {
+          "Type": "Petrol",
+          "Original HP": 190,
+          "Tuned HP": 245,
+          "Original Torque": 320,
+          "Tuned Torque": 430,
+          "Options": [
+            "VMax - speed limiter",
+            "LSU - lambda probe",
+            "EVAP - The ventilation system of the fuel tank",
+            "VSA - swirl flaps of collectors",
+            "SAP - second air",
+            "EGR - exhaust gas recirculation system",
+            "OPF - otto particulate filter",
+            "NOx - the oxygen sensor",
+            "PopBang",
+            "IMMO - immobilizer",
+            "DTC Removal - diagnostic trouble codes",
+            "StartStop Removal"
+          ]
+        },
+        "2.0 TFSI 252 HP": {
+          "Type": "Petrol",
+          "Original HP": 252,
+          "Tuned HP": 310,
+          "Original Torque": 370,
+          "Tuned Torque": 450,
+          "Options": [
+            "VMax - speed limiter",
+            "LSU - lambda probe",
+            "EVAP - The ventilation system of the fuel tank",
+            "VSA - swirl flaps of collectors",
+            "SAP - second air",
+            "EGR - exhaust gas recirculation system",
+            "OPF - otto particulate filter",
+            "NOx - the oxygen sensor",
+            "PopBang",
+            "IMMO - immobilizer",
+            "DTC Removal - diagnostic trouble codes",
+            "StartStop Removal"
+          ]
+        },
+        "2.0 TDI 122 HP": {
+          "Type": "Diesel",
+          "Original HP": 122,
+          "Tuned HP": 190,
+          "Original Torque": 270,
+          "Tuned Torque": 420,
+          "Options": [
+            "VMax - speed limiter",
+            "SCR - AdBlue system",
+            "EGR - exhaust gas recirculation system",
+            "DPF - diesel particulate filter",
+            "TVA - throttle flaps",
+            "VSA - swirl flaps of collectors",
+            "MAF - air flow meter",
+            "NOx - the oxygen sensor",
+            "IMMO - immobilizer",
+            "DTC Removal - diagnostic trouble codes",
+            "StartStop Removal"
+          ]
+        },
+        "2.0 TDI 136 HP": {
+          "Type": "Diesel",
+          "Original HP": 136,
+          "Tuned HP": 190,
+          "Original Torque": 320,
+          "Tuned Torque": 420,
+          "Options": [
+            "VMax - speed limiter",
+            "SCR - AdBlue system",
+            "EGR - exhaust gas recirculation system",
+            "DPF - diesel particulate filter",
+            "TVA - throttle flaps",
+            "VSA - swirl flaps of collectors",
+            "MAF - air flow meter",
+            "NOx - the oxygen sensor",
+            "IMMO - immobilizer",
+            "DTC Removal - diagnostic trouble codes",
+            "StartStop Removal"
+          ]
+        },
+        "2.0 TDI 150 HP": {
+          "Type": "Diesel",
+          "Original HP": 150,
+          "Tuned HP": 190,
+          "Original Torque": 320,
+          "Tuned Torque": 420,
+          "Options": [
+            "VMax - speed limiter",
+            "SCR - AdBlue system",
+            "EGR - exhaust gas recirculation system",
+            "DPF - diesel particulate filter",
+            "TVA - throttle flaps",
+            "VSA - swirl flaps of collectors",
+            "MAF - air flow meter",
+            "NOx - the oxygen sensor",
+            "IMMO - immobilizer",
+            "DTC Removal - diagnostic trouble codes",
+            "StartStop Removal"
+          ]
+        },
+        "2.0 TDI 190 HP": {
+          "Type": "Diesel",
+          "Original HP": 190,
+          "Tuned HP": 225,
+          "Original Torque": 400,
+          "Tuned Torque": 460,
+          "Options": [
+            "VMax - speed limiter",
+            "SCR - AdBlue system",
+            "EGR - exhaust gas recirculation system",
+            "DPF - diesel particulate filter",
+            "TVA - throttle flaps",
+            "VSA - swirl flaps of collectors",
+            "MAF - air flow meter",
+            "NOx - the oxygen sensor",
+            "IMMO - immobilizer",
+            "DTC Removal - diagnostic trouble codes",
+            "StartStop Removal"
+          ]
+        },
+        "3.0 V6 TDI FWD 218 HP": {
+          "Type": "Diesel",
+          "Original HP": 218,
+          "Tuned HP": 300,
+          "Original Torque": 400,
+          "Tuned Torque": 500,
+          "Options": [
+            "VMax - speed limiter",
+            "SCR - AdBlue system",
+            "EGR - exhaust gas recirculation system",
+            "DPF - diesel particulate filter",
+            "TVA - throttle flaps",
+            "VSA - swirl flaps of collectors",
+            "MAF - air flow meter",
+            "NOx - the oxygen sensor",
+            "IMMO - immobilizer",
+            "DTC Removal - diagnostic trouble codes",
+            "StartStop Removal"
+          ]
+        },
+        "3.0 V6 TDI Quattro 218 HP": {
+          "Type": "Diesel",
+          "Original HP": 218,
+          "Tuned HP": 300,
+          "Original Torque": 400,
+          "Tuned Torque": 500,
+          "Options": [
+            "VMax - speed limiter",
+            "SCR - AdBlue system",
+            "EGR - exhaust gas recirculation system",
+            "DPF - diesel particulate filter",
+            "TVA - throttle flaps",
+            "VSA - swirl flaps of collectors",
+            "MAF - air flow meter",
+            "NOx - the oxygen sensor",
+            "IMMO - immobilizer",
+            "DTC Removal - diagnostic trouble codes",
+            "StartStop Removal"
+          ]
+        },
+        "3.0 V6 TDI Quattro 272 HP": {
+          "Type": "Diesel",
+          "Original HP": 272,
+          "Tuned HP": 320,
+          "Original Torque": 600,
+          "Tuned Torque": 680,
+          "Options": [
+            "VMax - speed limiter",
+            "SCR - AdBlue system",
+            "EGR - exhaust gas recirculation system",
+            "DPF - diesel particulate filter",
+            "TVA - throttle flaps",
+            "VSA - swirl flaps of collectors",
+            "MAF - air flow meter",
+            "NOx - the oxygen sensor",
+            "IMMO - immobilizer",
+            "DTC Removal - diagnostic trouble codes",
+            "StartStop Removal"
+          ]
+        }
+	  },
+      "B9 - 2019 ->": {
+		"35 TFSI (2.0t) 150 HP": {
+          "Type": "Petrol MHEV",
+          "Original HP": 150,
+          "Tuned HP": 245,
+          "Original Torque": 270,
+          "Tuned Torque": 420,
+          "Options": [
+            "VMax - speed limiter",
+            "LSU - lambda probe",
+            "EVAP - The ventilation system of the fuel tank",
+            "VSA - swirl flaps of collectors",
+            "SAP - second air",
+            "EGR - exhaust gas recirculation system",
+            "OPF - otto particulate filter",
+            "NOx - the oxygen sensor",
+            "PopBang",
+            "IMMO - immobilizer",
+            "DTC Removal - diagnostic trouble codes",
+            "StartStop Removal"
+          ]
+        },
+        "40 TFSI (2.0T) 204 HP": {
+          "Type": "Petrol MHEV",
+          "Original HP": 204,
+          "Tuned HP": 245,
+          "Original Torque": 320,
+          "Tuned Torque": 430,
+          "Options": [
+            "VMax - speed limiter",
+            "LSU - lambda probe",
+            "EVAP - The ventilation system of the fuel tank",
+            "VSA - swirl flaps of collectors",
+            "SAP - second air",
+            "EGR - exhaust gas recirculation system",
+            "OPF - otto particulate filter",
+            "NOx - the oxygen sensor",
+            "PopBang",
+            "IMMO - immobilizer",
+            "DTC Removal - diagnostic trouble codes",
+            "StartStop Removal"
+          ]
+        },
+        "45 TFSI (2.0T) 265 HP": {
+          "Type": "Petrol MHEV",
+          "Original HP": 265,
+          "Tuned HP": 310,
+          "Original Torque": 370,
+          "Tuned Torque": 490,
+          "Options": [
+            "VMax - speed limiter",
+            "LSU - lambda probe",
+            "EVAP - The ventilation system of the fuel tank",
+            "VSA - swirl flaps of collectors",
+            "SAP - second air",
+            "EGR - exhaust gas recirculation system",
+            "OPF - otto particulate filter",
+            "NOx - the oxygen sensor",
+            "PopBang",
+            "IMMO - immobilizer",
+            "DTC Removal - diagnostic trouble codes",
+            "StartStop Removal"
+          ]
+        },
+		"40 TFSI (2.0t) 190 HP": {
+          "Type": "Petrol",
+          "Original HP": 190,
+          "Tuned HP": 245,
+          "Original Torque": 320,
+          "Tuned Torque": 430,
+          "Options": [
+            "VMax - speed limiter",
+            "LSU - lambda probe",
+            "EVAP - The ventilation system of the fuel tank",
+            "VSA - swirl flaps of collectors",
+            "SAP - second air",
+            "EGR - exhaust gas recirculation system",
+            "OPF - otto particulate filter",
+            "NOx - the oxygen sensor",
+            "PopBang",
+            "IMMO - immobilizer",
+            "DTC Removal - diagnostic trouble codes",
+            "StartStop Removal"
+          ]
+        },
+        "40 TFSI G-Tron (2.0T) 170 HP": {
+          "Type": "Petrol",
+          "Original HP": 170,
+          "Tuned HP": 200,
+          "Original Torque": 270,
+          "Tuned Torque": 320,
+          "Options": [
+            "VMax - speed limiter",
+            "LSU - lambda probe",
+            "EVAP - The ventilation system of the fuel tank",
+            "VSA - swirl flaps of collectors",
+            "SAP - second air",
+            "EGR - exhaust gas recirculation system",
+            "OPF - otto particulate filter",
+            "NOx - the oxygen sensor",
+            "PopBang",
+            "IMMO - immobilizer",
+            "DTC Removal - diagnostic trouble codes",
+            "StartStop Removal"
+          ]
+        },
+        "45 TFSI (2.0T) 245 HP": {
+          "Type": "Petrol",
+          "Original HP": 245,
+          "Tuned HP": 295,
+          "Original Torque": 370,
+          "Tuned Torque": 445,
+          "Options": [
+            "VMax - speed limiter",
+            "LSU - lambda probe",
+            "EVAP - The ventilation system of the fuel tank",
+            "VSA - swirl flaps of collectors",
+            "SAP - second air",
+            "EGR - exhaust gas recirculation system",
+            "OPF - otto particulate filter",
+            "NOx - the oxygen sensor",
+            "PopBang",
+            "IMMO - immobilizer",
+            "DTC Removal - diagnostic trouble codes",
+            "StartStop Removal"
+          ]
+        },
+        "35 TDI (2.0D) 163 HP": {
+          "Type": "Diesel MHEV",
+          "Original HP": 163,
+          "Tuned HP": 210,
+          "Original Torque": 380,
+          "Tuned Torque": 450,
+          "Options": [
+            "VMax - speed limiter",
+            "SCR - AdBlue system",
+            "EGR - exhaust gas recirculation system",
+            "DPF - diesel particulate filter",
+            "TVA - throttle flaps",
+            "VSA - swirl flaps of collectors",
+            "MAF - air flow meter",
+            "NOx - the oxygen sensor",
+            "IMMO - immobilizer",
+            "DTC Removal - diagnostic trouble codes",
+            "StartStop Removal"
+          ]
+        },
+        "40 TDI (2.0D) 204 HP": {
+          "Type": "Diesel MHEV",
+          "Original HP": 204,
+          "Tuned HP": 220,
+          "Original Torque": 400,
+          "Tuned Torque": 450,
+          "Options": [
+            "VMax - speed limiter",
+            "SCR - AdBlue system",
+            "EGR - exhaust gas recirculation system",
+            "DPF - diesel particulate filter",
+            "TVA - throttle flaps",
+            "VSA - swirl flaps of collectors",
+            "MAF - air flow meter",
+            "NOx - the oxygen sensor",
+            "IMMO - immobilizer",
+            "DTC Removal - diagnostic trouble codes",
+            "StartStop Removal"
+          ]
+        },
+        "50 TDI (3.0D) 286 HP": {
+          "Type": "Diesel MHEV",
+          "Original HP": 286,
+          "Tuned HP": 350,
+          "Original Torque": 620,
+          "Tuned Torque": 720,
+          "Options": [
+            "VMax - speed limiter",
+            "SCR - AdBlue system",
+            "EGR - exhaust gas recirculation system",
+            "DPF - diesel particulate filter",
+            "TVA - throttle flaps",
+            "VSA - swirl flaps of collectors",
+            "MAF - air flow meter",
+            "NOx - the oxygen sensor",
+            "IMMO - immobilizer",
+            "DTC Removal - diagnostic trouble codes",
+            "StartStop Removal"
+          ]
+        },
+		"30 TDI (2.0D) 122 HP": {
+          "Type": "Diesel",
+          "Original HP": 122,
+          "Tuned HP": 185,
+          "Original Torque": 270,
+          "Tuned Torque": 410,
+          "Options": [
+            "VMax - speed limiter",
+            "SCR - AdBlue system",
+            "EGR - exhaust gas recirculation system",
+            "DPF - diesel particulate filter",
+            "TVA - throttle flaps",
+            "VSA - swirl flaps of collectors",
+            "MAF - air flow meter",
+            "NOx - the oxygen sensor",
+            "IMMO - immobilizer",
+            "DTC Removal - diagnostic trouble codes",
+            "StartStop Removal"
+          ]
+        },
+        "30 TDI (2.0D) 136 HP": {
+          "Type": "Diesel",
+          "Original HP": 136,
+          "Tuned HP": 185,
+          "Original Torque": 320,
+          "Tuned Torque": 410,
+          "Options": [
+            "VMax - speed limiter",
+            "SCR - AdBlue system",
+            "EGR - exhaust gas recirculation system",
+            "DPF - diesel particulate filter",
+            "TVA - throttle flaps",
+            "VSA - swirl flaps of collectors",
+            "MAF - air flow meter",
+            "NOx - the oxygen sensor",
+            "IMMO - immobilizer",
+            "DTC Removal - diagnostic trouble codes",
+            "StartStop Removal"
+          ]
+        },
+		"35 TDI (2.0D) 150 HP": {
+          "Type": "Diesel",
+          "Original HP": 150,
+          "Tuned HP": 185,
+          "Original Torque": 320,
+          "Tuned Torque": 410,
+          "Options": [
+            "VMax - speed limiter",
+            "SCR - AdBlue system",
+            "EGR - exhaust gas recirculation system",
+            "DPF - diesel particulate filter",
+            "TVA - throttle flaps",
+            "VSA - swirl flaps of collectors",
+            "MAF - air flow meter",
+            "NOx - the oxygen sensor",
+            "IMMO - immobilizer",
+            "DTC Removal - diagnostic trouble codes",
+            "StartStop Removal"
+          ]
+        },
+        "40 TDI (2.0D) 190 HP": {
+          "Type": "Diesel",
+          "Original HP": 190,
+          "Tuned HP": 220,
+          "Original Torque": 400,
+          "Tuned Torque": 450,
+          "Options": [
+            "VMax - speed limiter",
+            "SCR - AdBlue system",
+            "EGR - exhaust gas recirculation system",
+            "DPF - diesel particulate filter",
+            "TVA - throttle flaps",
+            "VSA - swirl flaps of collectors",
+            "MAF - air flow meter",
+            "NOx - the oxygen sensor",
+            "IMMO - immobilizer",
+            "DTC Removal - diagnostic trouble codes",
+            "StartStop Removal"
+          ]
+        },
+        "45 TDI (3.0D) 231 HP": {
+          "Type": "Diesel",
+          "Original HP": 231,
+          "Tuned HP": 350,
+          "Original Torque": 500,
+          "Tuned Torque": 720,
+          "Options": [
+            "VMax - speed limiter",
+            "SCR - AdBlue system",
+            "EGR - exhaust gas recirculation system",
+            "DPF - diesel particulate filter",
+            "TVA - throttle flaps",
+            "VSA - swirl flaps of collectors",
+            "MAF - air flow meter",
+            "NOx - the oxygen sensor",
+            "IMMO - immobilizer",
+            "DTC Removal - diagnostic trouble codes",
+            "StartStop Removal"
+          ]
+        }
     },
     "A5": {
       "8T - 2007 - 2011": {},
